@@ -1,0 +1,23 @@
+@import "tailwindcss";
+
+:root {
+  --background-rgb: 18, 18, 18;
+  --foreground-rgb: 255, 255, 255;
+  --accent-rgb: 255, 215, 0;
+  --dark-text-rgb: 24, 24, 27;
+  --primary-rgb: 32, 199, 199;
+  --secondary-rgb: 159, 80, 255;
+}
+
+@theme {
+  --color-primary: rgb(var(--primary-rgb));
+  --color-secondary: rgb(var(--secondary-rgb));
+  --color-accent: rgb(var(--accent-rgb));
+  --color-text-light: rgb(var(--foreground-rgb));
+  --color-text-dark: rgb(var(--dark-text-rgb));
+}
+
+body {
+  color: theme(colors.text-light);
+  background: rgb(var(--background-rgb));
+}
