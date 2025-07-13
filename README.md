@@ -169,9 +169,10 @@ Contributions are welcome! Please follow these steps:
 5.  Push to the branch (`git push origin feature/your-feature-name`).
 6.  Open a pull request.
 
-## 📄 License
+## License
 
-This project is licensed under the MIT License.
+This project is licensed under the AGPLv3 License - see the [LICENSE](LICENSE) file for details.
+
 
 ## 📬 Contact
 
