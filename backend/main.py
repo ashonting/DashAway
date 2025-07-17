@@ -16,11 +16,9 @@ from jargon_suggestions import JARGON_SUGGESTIONS
 from em_dash_suggestions import EM_DASH_SUGGESTIONS
 from database import SessionLocal, Feedback, FAQ
 from sqlalchemy.orm import Session
-from fastapi.security import HTTPBasic, HTTPBasicCredentials
 
 app = FastAPI()
 
-security = HTTPBasic()
 origins = ["*"]
 
 app.add_middleware(
@@ -180,98 +178,35 @@ def process_text(request: TextProcessRequest):
                 }
             )
 
-        return {"segments": segments}
+        readability_score = textstat.flesch_kincaid_grade(text)
+
+        return {"segments": segments, "readability_score": readability_score}
+
     except Exception as e:
-        return {"error": str(e)}
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"An unexpected error occurred: {str(e)}")
 
 
 @app.post("/readability")
 def get_readability(request: TextProcessRequest):
     try:
-        print("--- Entering /readability endpoint ---")
         text = request.text
-        print(f"Received text: {text[:100]}...")
-
-        print("Calculating Flesch-Kincaid score...")
         score = textstat.flesch_kincaid_grade(text)
-        print(f"Flesch-Kincaid score: {score}")
-
-        print("Identifying long sentences...")
         sentences = nltk.sent_tokenize(text)
         long_sentences = [
             s for s in sentences if len(
                 nltk.word_tokenize(s)) > 20]
-
-        long_sentence_suggestions = {}
-        for sentence in long_sentences:
-            suggestions = []
-            words = nltk.word_tokenize(sentence)
-            pos_tags = nltk.pos_tag(words)
-
-            # Check for multiple conjunctions
-            conjunctions = [word for word, tag in pos_tags if tag == 'CC']
-            if len(conjunctions) > 2:
-                suggestions.append(
-                    "This sentence has multiple conjunctions. "
-                    "Consider splitting it into two or more sentences.")
-
-            # Check for lists
-            nouns = [word for word, tag in pos_tags if tag.startswith('NN')]
-            if len(nouns) > 4:
-                suggestions.append(
-                    "This sentence appears to contain a list. "
-                    "Consider using bullet points to improve readability.")
-
-            # Check for passive voice
-            passive_voice = any(
-                tag in ['VBN', 'VBD'] for _,
-                tag in pos_tags) and any(
-                word in [
-                    'is',
-                    'are',
-                    'was',
-                    'were',
-                    'be',
-                    'been',
-                    'being'] for word,
-                _ in pos_tags)
-            if passive_voice:
-                suggestions.append(
-                    "This sentence may be in the passive voice. Try rewriting "
-                    "it in the active voice to make it more direct.")
-
-            if not suggestions:
-                suggestions.append(
-                    "This sentence is long. Consider breaking it "
-                    "into smaller sentences.")
-
-            long_sentence_suggestions[sentence] = suggestions
-
-        print(f"Found {len(long_sentences)} long sentences.")
-
-        print("Identifying complex words...")
-        words = nltk.word_tokenize(text)
         complex_words = [
-            word for word in words if textstat.syllable_count(
+            word for word in nltk.word_tokenize(text) if textstat.syllable_count(
                 word) >= 3 and word.isalpha()]
-        print(f"Found {len(complex_words)} complex words.")
-
-        print("Getting synonyms for complex words...")
-        complex_word_suggestions = {
-            word: get_simple_synonyms(word)
-            for word in complex_words
-        }
-        print("Finished getting synonyms.")
-
-        response_data = {
+        
+        return {
             "readability_score": score,
-            "long_sentences": long_sentence_suggestions,
-            "complex_words": complex_word_suggestions,
+            "long_sentences": long_sentences,
+            "complex_words": complex_words
         }
-        print("--- Exiting /readability endpoint ---")
-        return response_data
     except Exception as e:
-        print(f"--- Error in /readability endpoint: {e} ---")
         return {"error": str(e)}
 
 
@@ -289,30 +224,3 @@ def receive_feedback(request: FeedbackRequest, db: Session = Depends(get_db)):
 @app.get("/faq")
 def get_faq(db: Session = Depends(get_db)):
     return db.query(FAQ).all()
-
-
-@app.post("/auth/paddle")
-async def paddle_webhook(request: Request, db: Session = Depends(get_db)):
-    payload = await request.json()
-    # In a real application, you would verify the webhook signature
-    # and handle the event data accordingly.
-    # For this prototype, we'll just log the event.
-    print("Paddle webhook received:", payload)
-    return {"status": "success"}
-
-
-@app.get("/admin/feedback")
-def get_admin_feedback(
-    credentials: HTTPBasicCredentials = Depends(security),
-    db: Session = Depends(get_db)
-):
-    admin_user = os.environ.get("ADMIN_USERNAME", "admin")
-    admin_password = os.environ.get("ADMIN_PASSWORD", "password")
-    if credentials.username != admin_user or credentials.password != admin_password:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect email or password",
-            headers={"WWW-Authenticate": "Basic"},
-        )
-    return db.query(Feedback).all()
-

@@ -1,0 +1,14 @@
+# Docker-specific ignores
+.dockerignore
+Dockerfile
+
+# Node-specific ignores
+node_modules/
+npm-debug.log
+.next/
+dist/
+build/
+
+# Git-specific ignores
+.git
+.gitignore

@@ -1,23 +1,24 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 :root {
-  --background-rgb: 18, 18, 18;
-  --foreground-rgb: 255, 255, 255;
-  --accent-rgb: 255, 215, 0;
-  --dark-text-rgb: 24, 24, 27;
-  --primary-rgb: 32, 199, 199;
-  --secondary-rgb: 159, 80, 255;
+  --primary-color: #007aff;
+  --secondary-color: #ff3b30;
+  --accent-color: #ff9500;
+  --background-color: #f2f2f7;
+  --text-color: #1c1c1e;
 }
 
-@theme {
-  --color-primary: rgb(var(--primary-rgb));
-  --color-secondary: rgb(var(--secondary-rgb));
-  --color-accent: rgb(var(--accent-rgb));
-  --color-text-light: rgb(var(--foreground-rgb));
-  --color-text-dark: rgb(var(--dark-text-rgb));
+[data-theme="dark"] {
+  --primary-color: #0a84ff;
+  --secondary-color: #ff453a;
+  --accent-color: #ff9f0a;
+  --background-color: #1c1c1e;
+  --text-color: #f2f2f7;
 }
 
 body {
-  color: theme(colors.text-light);
-  background: rgb(var(--background-rgb));
+  background-color: var(--background-color);
+  color: var(--text-color);
 }

@@ -1,44 +1,21 @@
-import type { Metadata } from 'next'
+export default function RefundPolicy() {
+    return (
+        <main className="container mx-auto px-4 py-8 bg-background text-text">
+            <div className="max-w-4xl mx-auto">
+                <h1 className="text-3xl font-bold mb-4">Refund & Cancellation Policy</h1>
+                <div className="space-y-4">
+                    <p>Last updated: July 8, 2025</p>
+                    
+                    <h2 className="text-2xl font-bold pt-4">Cancellation Policy</h2>
+                    <p>Users may cancel their monthly or annual DashAway subscription at any time via their account dashboard or by contacting support@dashaway.app.</p>
+                    <p>Upon cancellation, your subscription will remain active until the end of your current billing period (monthly or annual). You will not be charged again.</p>
+                    <p>After your current billing period ends, your account will be downgraded to the free tier (if available) or access will be suspended.</p>
 
-export const metadata: Metadata = {
-  title: 'Refund Policy - DashAway',
-  description: 'DashAway\'s policy on refunds and cancellations.',
-}
-
-export default function RefundPage() {
-  return (
-    <div className="max-w-4xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
-      <div className="bg-gray-800/50 backdrop-blur-lg rounded-2xl border border-white/10 shadow-xl p-8">
-        <h1 className="text-3xl font-bold text-white mb-6">Refund Policy</h1>
-        <div className="prose prose-invert max-w-none text-white/80 space-y-4">
-          <p>Last updated: July 2025</p>
-          <p>DashAway strives for customer satisfaction. Please read our refund policy carefully.</p>
-
-          <h2 className="text-xl font-semibold text-white pt-4">1. Subscription Refunds</h2>
-          <p>
-            We offer a 7-day money-back guarantee for first-time subscribers. To request a refund within
-            this period, contact support@dashaway.io with your account details.
-          </p>
-
-          <h2 className="text-xl font-semibold text-white pt-4">2. Renewal Refunds</h2>
-          <p>
-            Renewals and recurring subscription charges are non-refundable. Please cancel your subscription
-            before the next billing cycle to avoid further charges.
-          </p>
-
-          <h2 className="text-xl font-semibold text-white pt-4">3. Exceptional Circumstances</h2>
-          <p>
-            Refund requests outside of the 7-day window will be considered on a case-by-case basis at our
-            sole discretion.
-          </p>
-
-          <h2 className="text-xl font-semibold text-white pt-4">4. How to Request a Refund</h2>
-          <p>
-            Email support@dashaway.io with your account email and order details. Refunds will be processed
-            to the original payment method within 5–10 business days after approval.
-          </p>
-        </div>
-      </div>
-    </div>
-  )
+                    <h2 className="text-2xl font-bold pt-4">Refund Policy</h2>
+                    <p>No prorated refunds are issued for unused time unless a technical issue, unresolved within 7 days of reporting, qualifies you for a discretionary refund.</p>
+                    <p>If you believe you are eligible for a refund, please contact us at support@dashaway.app.</p>
+                </div>
+            </div>
+        </main>
+    );
 }
