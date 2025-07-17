@@ -25,6 +25,7 @@ export default function Home() {
   const [activePopover, setActivePopover] = useState<number | null>(null)
   const [loading, setLoading] = useState(false)
   const [readabilityScore, setReadabilityScore] = useState<number | null>(null)
+  const [remainingRuns, setRemainingRuns] = useState<number | null>(null)
   const MAX_CHARS = 10000
 
   const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -59,6 +60,17 @@ export default function Home() {
 
       const processData = await processResponse.json();
       const readabilityData = await readabilityResponse.json();
+
+      // Increment usage count
+      const usageRes = await fetch('http://localhost:8000/usage', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_id: 1 })
+      });
+      if (usageRes.ok) {
+        const usageData = await usageRes.json();
+        setRemainingRuns(usageData.remaining);
+      }
 
       if (processData.error || readabilityData.error) {
         console.error("Backend error:", processData.error || readabilityData.error);
@@ -223,7 +235,7 @@ export default function Home() {
           </div>
         </div>
         <div className="mt-6">
-            <Stats emDashes={emDashCount} cliches={clicheCount} jargon={jargonCount} aiTells={aiTellCount} readabilityScore={readabilityScore} complexWords={complexWordCount} longSentences={longSentenceCount} />
+            <Stats emDashes={emDashCount} cliches={clicheCount} jargon={jargonCount} aiTells={aiTellCount} readabilityScore={readabilityScore} complexWords={complexWordCount} longSentences={longSentenceCount} remainingRuns={remainingRuns ?? undefined} />
         </div>
       </main>
   )
