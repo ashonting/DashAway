@@ -14,13 +14,36 @@ from cliche_suggestions import CLICHE_SUGGESTIONS
 from jargon import JARGON
 from jargon_suggestions import JARGON_SUGGESTIONS
 from em_dash_suggestions import EM_DASH_SUGGESTIONS
-from database import SessionLocal, Feedback, FAQ
+from database import SessionLocal, Feedback, FAQ, User
 from sqlalchemy.orm import Session
-from fastapi.security import HTTPBasic, HTTPBasicCredentials
+from fastapi.security import (
+    HTTPBearer,
+    HTTPAuthorizationCredentials,
+)
+from jose import JWTError, jwt
+import bcrypt
+from datetime import datetime, timedelta
 
 app = FastAPI()
 
-security = HTTPBasic()
+bearer_scheme = HTTPBearer()
+SECRET_KEY = os.environ.get("SECRET_KEY", "secret")
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = 30
+
+def create_access_token(data: dict, expires_delta: timedelta | None = None):
+    to_encode = data.copy()
+    expire = datetime.utcnow() + (expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
+    to_encode.update({"exp": expire})
+    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+
+def hash_password(password: str) -> str:
+    return bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
+
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    return bcrypt.checkpw(plain_password.encode("utf-8"), hashed_password.encode("utf-8"))
+
+
 origins = ["*"]
 
 app.add_middleware(
@@ -49,6 +72,21 @@ class FeedbackRequest(BaseModel):
     content: str
 
 
+class UserCreate(BaseModel):
+    email: str
+    password: str
+
+
+class LoginRequest(BaseModel):
+    email: str
+    password: str
+
+
+class TokenResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+
+
 @app.on_event("startup")
 def startup_event():
     db = SessionLocal()
@@ -74,6 +112,45 @@ def startup_event():
 @app.get("/")
 def read_root():
     return {"message": "DashAway Backend is running"}
+
+
+def get_current_user(
+    credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme),
+    db: Session = Depends(get_db),
+):
+    token = credentials.credentials
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        user_id = payload.get("sub")
+        if user_id is None:
+            raise HTTPException(status_code=401, detail="Invalid token")
+    except JWTError:
+        raise HTTPException(status_code=401, detail="Invalid token")
+    user = db.query(User).filter(User.id == int(user_id)).first()
+    if user is None:
+        raise HTTPException(status_code=401, detail="User not found")
+    return user
+
+
+@app.post("/register")
+def register(user: UserCreate, db: Session = Depends(get_db)):
+    if db.query(User).filter(User.email == user.email).first():
+        raise HTTPException(status_code=400, detail="Email already registered")
+    hashed_password = hash_password(user.password)
+    db_user = User(email=user.email, hashed_password=hashed_password)
+    db.add(db_user)
+    db.commit()
+    db.refresh(db_user)
+    return {"message": "User created"}
+
+
+@app.post("/login", response_model=TokenResponse)
+def login(request: LoginRequest, db: Session = Depends(get_db)):
+    db_user = db.query(User).filter(User.email == request.email).first()
+    if not db_user or not verify_password(request.password, db_user.hashed_password):
+        raise HTTPException(status_code=401, detail="Incorrect email or password")
+    token = create_access_token({"sub": db_user.id})
+    return {"access_token": token}
 
 
 def get_simple_synonyms(word):
@@ -303,16 +380,8 @@ async def paddle_webhook(request: Request, db: Session = Depends(get_db)):
 
 @app.get("/admin/feedback")
 def get_admin_feedback(
-    credentials: HTTPBasicCredentials = Depends(security),
-    db: Session = Depends(get_db)
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
 ):
-    admin_user = os.environ.get("ADMIN_USERNAME", "admin")
-    admin_password = os.environ.get("ADMIN_PASSWORD", "password")
-    if credentials.username != admin_user or credentials.password != admin_password:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect email or password",
-            headers={"WWW-Authenticate": "Basic"},
-        )
     return db.query(Feedback).all()
 
