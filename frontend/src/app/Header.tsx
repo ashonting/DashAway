@@ -23,6 +23,12 @@ export default function Header() {
               <Link href="/pricing" className="hover:text-accent transition-colors duration-300">
                 Pricing
               </Link>
+              <Link href="/login" className="hover:text-accent transition-colors duration-300">
+                Login
+              </Link>
+              <Link href="/register" className="hover:text-accent transition-colors duration-300">
+                Register
+              </Link>
             </nav>
           </div>
         </div>
