@@ -14,7 +14,7 @@ from cliche_suggestions import CLICHE_SUGGESTIONS
 from jargon import JARGON
 from jargon_suggestions import JARGON_SUGGESTIONS
 from em_dash_suggestions import EM_DASH_SUGGESTIONS
-from database import SessionLocal, Feedback, FAQ
+from database import SessionLocal, Feedback, FAQ, Usage
 from sqlalchemy.orm import Session
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 
@@ -22,6 +22,8 @@ app = FastAPI()
 
 security = HTTPBasic()
 origins = ["*"]
+
+MAX_FREE_RUNS = 10
 
 app.add_middleware(
     CORSMiddleware,
@@ -47,6 +49,10 @@ class TextProcessRequest(BaseModel):
 class FeedbackRequest(BaseModel):
     feedback_type: str
     content: str
+
+
+class UsageRequest(BaseModel):
+    user_id: int
 
 
 @app.on_event("startup")
@@ -315,4 +321,26 @@ def get_admin_feedback(
             headers={"WWW-Authenticate": "Basic"},
         )
     return db.query(Feedback).all()
+
+
+@app.post("/usage")
+def increment_usage(request: UsageRequest, db: Session = Depends(get_db)):
+    usage = db.query(Usage).filter(Usage.user_id == request.user_id).first()
+    if usage is None:
+        usage = Usage(user_id=request.user_id, count=1)
+        db.add(usage)
+    else:
+        usage.count += 1
+    db.commit()
+    db.refresh(usage)
+    remaining = max(0, MAX_FREE_RUNS - usage.count)
+    return {"user_id": usage.user_id, "count": usage.count, "remaining": remaining}
+
+
+@app.get("/usage/{user_id}")
+def get_usage(user_id: int, db: Session = Depends(get_db)):
+    usage = db.query(Usage).filter(Usage.user_id == user_id).first()
+    count = usage.count if usage else 0
+    remaining = max(0, MAX_FREE_RUNS - count)
+    return {"user_id": user_id, "count": count, "remaining": remaining}
 

@@ -6,11 +6,12 @@ interface StatsProps {
   readabilityScore: number | null;
   complexWords: number;
   longSentences: number;
+  remainingRuns?: number | null;
 }
 
-export default function Stats({ emDashes, cliches, jargon, aiTells, readabilityScore, complexWords, longSentences }: StatsProps) {
+export default function Stats({ emDashes, cliches, jargon, aiTells, readabilityScore, complexWords, longSentences, remainingRuns }: StatsProps) {
   return (
-    <div className="grid grid-cols-2 md:grid-cols-7 gap-4 text-center">
+    <div className="grid grid-cols-2 md:grid-cols-8 gap-4 text-center">
       <div className="bg-teal-500/20 p-4 rounded-lg">
         <p className="text-2xl font-bold">{emDashes}</p>
         <p className="text-sm">Em-Dashes</p>
@@ -39,6 +40,12 @@ export default function Stats({ emDashes, cliches, jargon, aiTells, readabilityS
         <p className="text-2xl font-bold">{readabilityScore ? readabilityScore.toFixed(1) : 'N/A'}</p>
         <p className="text-sm">Readability</p>
       </div>
+      {remainingRuns !== null && (
+        <div className="bg-green-500/20 p-4 rounded-lg">
+          <p className="text-2xl font-bold">{remainingRuns}</p>
+          <p className="text-sm">Free Runs Left</p>
+        </div>
+      )}
     </div>
   );
 }

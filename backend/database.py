@@ -53,4 +53,14 @@ class Subscription(Base):
     user = relationship("User", back_populates="subscriptions")
 
 
+class Usage(Base):
+    __tablename__ = "usage"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"))
+    count = Column(Integer, default=0)
+
+    user = relationship("User")
+
+
 Base.metadata.create_all(bind=engine)
