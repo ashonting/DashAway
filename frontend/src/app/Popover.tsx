@@ -7,7 +7,7 @@ interface PopoverProps {
   disableReplace?: boolean;
 }
 
-const useOutsideAlerter = (ref: React.RefObject<HTMLDivElement>, onClose: () => void) => {
+const useOutsideAlerter = (ref: React.RefObject<HTMLDivElement | null>, onClose: () => void) => {
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (ref.current && !ref.current.contains(event.target as Node)) {
@@ -24,7 +24,7 @@ const useOutsideAlerter = (ref: React.RefObject<HTMLDivElement>, onClose: () => 
 
 
 export default function Popover({ onSelect, onClose, suggestions, disableReplace }: PopoverProps) {
-  const wrapperRef = useRef<HTMLDivElement>(null);
+  const wrapperRef = useRef<HTMLDivElement | null>(null);
   useOutsideAlerter(wrapperRef, onClose);
 
   const handleSelect = (item: string) => {
@@ -49,6 +49,12 @@ export default function Popover({ onSelect, onClose, suggestions, disableReplace
             {item}
           </button>
         ))}
+        <button
+          onClick={onClose}
+          className="px-3 py-1 bg-gray-600 text-white rounded hover:bg-gray-500"
+        >
+          Ignore
+        </button>
       </div>
       <button onClick={onClose} className="mt-2 w-full text-center text-xs text-gray-400 hover:text-white">Close</button>
     </div>

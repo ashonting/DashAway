@@ -127,6 +127,10 @@ export default function Home() {
     setActivePopover(null);
   }
 
+  const handleIgnore = () => {
+    setActivePopover(null);
+  }
+
   const handleReplaceAll = (type: 'em_dash' | 'cliche' | 'jargon' | 'ai_tell') => {
     const replacementText = (document.getElementById('replace-all-input') as HTMLInputElement).value;
     const newSegments = segments.map(segment => {
@@ -196,7 +200,7 @@ export default function Home() {
                     {activePopover === index && (
                       <Popover
                         onSelect={(suggestion) => handleReplace(index, suggestion)}
-                        onClose={() => setActivePopover(null)}
+                        onClose={handleIgnore}
                         suggestions={segment.suggestions || []}
                         disableReplace={segment.type === 'long_sentence'}
                       />
