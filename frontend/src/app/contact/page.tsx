@@ -6,8 +6,8 @@ export default function Contact() {
                 <div className="space-y-4">
                     <p>If you have any questions, feedback, or need support, please don&apos;t hesitate to reach out.</p>
                     <p>You can contact us by email at:</p>
-                    <a href="mailto:support@dashaway.app" className="text-2xl text-primary font-bold hover:underline">
-                        support@dashaway.app
+                    <a href="mailto:support@dashaway.io" className="text-2xl text-primary font-bold hover:underline">
+                        support@dashaway.io
                     </a>
                 </div>
             </div>

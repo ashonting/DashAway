@@ -3,13 +3,13 @@ import random
 import textstat
 import nltk
 from nltk.corpus import wordnet
-from app.ai_tells import AI_TELLS
-from app.ai_tell_suggestions import AI_TELL_SUGGESTIONS
-from app.cliches import CLICHES
-from app.cliche_suggestions import CLICHE_SUGGESTIONS
-from app.jargon import JARGON
-from app.jargon_suggestions import JARGON_SUGGESTIONS
-from app.em_dash_suggestions import EM_DASH_SUGGESTIONS
+from ..data.ai_tells import AI_TELLS
+from ..data.ai_tell_suggestions import AI_TELL_SUGGESTIONS
+from ..data.cliches import CLICHES
+from ..data.cliche_suggestions import CLICHE_SUGGESTIONS
+from ..data.jargon import JARGON
+from ..data.jargon_suggestions import JARGON_SUGGESTIONS
+from ..data.em_dash_suggestions import EM_DASH_SUGGESTIONS
 
 def get_thesaurus_synonyms(word):
     """Gets the 3-4 closest thesaurus relatives for a word."""

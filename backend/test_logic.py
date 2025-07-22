@@ -1,9 +1,9 @@
 import re
-from ai_tells import AI_TELLS
-from cliches import CLICHES
-from jargon import JARGON
-from jargon_suggestions import JARGON_SUGGESTIONS
-from cliche_suggestions import CLICHE_SUGGESTIONS
+from app.data.ai_tells import AI_TELLS
+from app.data.cliches import CLICHES
+from app.data.jargon import JARGON
+from app.data.jargon_suggestions import JARGON_SUGGESTIONS
+from app.data.cliche_suggestions import CLICHE_SUGGESTIONS
 
 text = """Unlocking Scalable Synergy: How Hyperautomation Is Revolutionizing the Digital Landscape
 In the ever-evolving landscape of digital transformation—where agility, velocity, and scalability reign supreme—businesses are being forced to reimagine traditional workflows. And while the buzzwords may seem endless—hyperautomation, intelligent orchestration, seamless integration—the reality is clear: organizations that fail to embrace this paradigm shift are at risk of being left behind.

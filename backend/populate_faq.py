@@ -1,4 +1,5 @@
-from database import SessionLocal, FAQ
+from app.database import SessionLocal
+from app.models.faq import FAQ
 
 def populate_faq():
     db = SessionLocal()

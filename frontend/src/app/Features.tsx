@@ -10,14 +10,37 @@ const FeatureCard = ({ title, description }: { title: string, description: strin
 export default function Features() {
     return (
         <section className="py-20">
-            <h2 className="text-4xl font-bold text-text text-center mb-12">A Better Way to Write</h2>
+            <div className="text-center mb-16">
+                <h2 className="text-4xl font-bold text-foreground mb-4">Why Your Content Isn&apos;t Converting</h2>
+                <p className="text-xl text-foreground/70 max-w-3xl mx-auto">
+                    AI-generated text and corporate jargon destroy trust. Here&apos;s how DashAway fixes the exact problems killing your conversions:
+                </p>
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                <FeatureCard title="Improve Readability" description="Make your writing easy to understand for any audience." />
-                <FeatureCard title="Sound More Professional" description="Eliminate common mistakes that undermine your credibility." />
-                <FeatureCard title="Eliminate AI Tells" description="Refine AI-generated text to sound more human and authentic." />
-                <FeatureCard title="Save Time" description="Automate the tedious process of proofreading for common issues." />
-                <FeatureCard title="Learn as You Go" description="Our suggestions help you become a better writer over time." />
-                <FeatureCard title="Secure and Private" description="Your text is never stored or used to train our models." />
+                <FeatureCard 
+                    title="🤖 Stop the AI Detection" 
+                    description="Remove phrases like 'delve into,' 'furthermore,' and 'in conclusion' that scream AI-generated content. Avoid penalties and build trust." 
+                />
+                <FeatureCard 
+                    title="⚡ Cut Reading Time by 40%" 
+                    description="Replace jargon like 'utilize' with 'use' and 'facilitate' with 'help.' Complex word simplification and long sentence restructuring coming soon." 
+                />
+                <FeatureCard 
+                    title="💰 Increase Engagement 3x" 
+                    description="Eliminate clichés that make readers scroll past. Replace 'game-changer' and 'cutting-edge' with specific, compelling language." 
+                />
+                <FeatureCard 
+                    title="🎯 Convert More Leads" 
+                    description="Professional writing that doesn't sound corporate builds trust. Turn more visitors into customers with authentic voice." 
+                />
+                <FeatureCard 
+                    title="⏱️ Save 2+ Hours Per Article" 
+                    description="Stop manually hunting for weak phrases. Get instant feedback and suggestions that make every sentence stronger." 
+                />
+                <FeatureCard 
+                    title="🔒 100% Private & Secure" 
+                    description="Your content never leaves your browser. No data storage, no AI training, no privacy concerns. Your words stay yours." 
+                />
             </div>
         </section>
     );

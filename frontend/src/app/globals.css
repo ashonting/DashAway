@@ -2,23 +2,65 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --primary-color: #007aff;
-  --secondary-color: #ff3b30;
-  --accent-color: #ff9500;
-  --background-color: #f2f2f7;
-  --text-color: #1c1c1e;
+@layer base {
+  :root {
+    /* Modern HSL color system */
+    --background: 0 0% 100%;
+    --foreground: 240 10% 3.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 240 10% 3.9%;
+    --primary: 187 85% 53%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 240 4.8% 95.9%;
+    --secondary-foreground: 240 5.9% 10%;
+    --accent: 240 4.8% 95.9%;
+    --accent-foreground: 240 5.9% 10%;
+    --border: 240 5.9% 90%;
+    --input: 240 5.9% 90%;
+    --ring: 187 85% 53%;
+    --muted: 240 4.8% 95.9%;
+    --muted-foreground: 240 3.8% 46.1%;
+    
+    /* Legacy colors */
+    --primary-color: #00a8c0;
+    --secondary-color: #ff3b30;
+    --accent-color: #ff9500;
+    --background-color: #f2f2f7;
+    --text-color: #1c1c1e;
+  }
+
+  .dark {
+    --background: 240 10% 3.9%;
+    --foreground: 0 0% 98%;
+    --card: 240 10% 3.9%;
+    --card-foreground: 0 0% 98%;
+    --primary: 187 85% 53%;
+    --primary-foreground: 240 10% 3.9%;
+    --secondary: 240 3.7% 15.9%;
+    --secondary-foreground: 0 0% 98%;
+    --accent: 240 3.7% 15.9%;
+    --accent-foreground: 0 0% 98%;
+    --border: 240 3.7% 15.9%;
+    --input: 240 3.7% 15.9%;
+    --ring: 187 85% 53%;
+    --muted: 240 3.7% 15.9%;
+    --muted-foreground: 240 5% 64.9%;
+    
+    /* Legacy colors */
+    --primary-color: #0090b0;
+    --secondary-color: #ff453a;
+    --accent-color: #ff9f0a;
+    --background-color: #1c1c1e;
+    --text-color: #f2f2f7;
+  }
 }
 
-[data-theme="dark"] {
-  --primary-color: #0a84ff;
-  --secondary-color: #ff453a;
-  --accent-color: #ff9f0a;
-  --background-color: #1c1c1e;
-  --text-color: #f2f2f7;
-}
-
-body {
-  background-color: var(--background-color);
-  color: var(--text-color);
+@layer base {
+  * {
+    @apply border-border;
+  }
+  
+  body {
+    @apply bg-background text-foreground;
+  }
 }

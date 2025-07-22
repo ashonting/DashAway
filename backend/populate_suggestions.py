@@ -510,11 +510,11 @@ CLICHE_SUGGESTIONS = {
     "from start to finish,": ["From beginning to end", "Completely", "Throughout"],
 }
 
-with open("jargon_suggestions.py", "w") as f:
+with open('app/data/jargon_suggestions.py', 'w') as f:
     f.write(f"JARGON_SUGGESTIONS = {JARGON_SUGGESTIONS}")
 
-with open("ai_tell_suggestions.py", "w") as f:
+with open('app/data/ai_tell_suggestions.py', 'w') as f:
     f.write(f"AI_TELL_SUGGESTIONS = {AI_TELL_SUGGESTIONS}")
 
-with open("cliche_suggestions.py", "w") as f:
+with open('app/data/cliche_suggestions.py', 'w') as f:
     f.write(f"CLICHE_SUGGESTIONS = {CLICHE_SUGGESTIONS}")

@@ -17,7 +17,7 @@ for term, suggestions in JARGON_SUGGESTIONS.items():
         new_suggestions.add(synonym)
     new_jargon_suggestions[term] = list(new_suggestions)
 
-with open('jargon_suggestions.py', 'w') as f:
+with open('app/data/jargon_suggestions.py', 'w') as f:
     f.write('JARGON_SUGGESTIONS = {\n')
     for term, suggestions in new_jargon_suggestions.items():
         f.write(f'    "{term}": {suggestions},\n')

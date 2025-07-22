@@ -1,5 +1,5 @@
-from jargon import JARGON
-from jargon_suggestions import JARGON_SUGGESTIONS
+from app.data.jargon import JARGON
+from app.data.jargon_suggestions import JARGON_SUGGESTIONS
 
 missing_jargon = [j for j in JARGON if j not in JARGON_SUGGESTIONS]
 

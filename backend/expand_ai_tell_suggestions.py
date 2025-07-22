@@ -21,7 +21,7 @@ for term, suggestions in AI_TELL_SUGGESTIONS.items():
         new_suggestions.add(synonym)
     new_ai_tell_suggestions[term] = list(new_suggestions)
 
-with open('ai_tell_suggestions.py', 'w') as f:
+with open('app/data/ai_tell_suggestions.py', 'w') as f:
     f.write('AI_TELL_SUGGESTIONS = {\n')
     for term, suggestions in new_ai_tell_suggestions.items():
         f.write(f'    "{term}": {suggestions},\n')

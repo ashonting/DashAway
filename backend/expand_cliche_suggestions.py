@@ -21,7 +21,7 @@ for term, suggestions in CLICHE_SUGGESTIONS.items():
         new_suggestions.add(synonym)
     new_cliche_suggestions[term] = list(new_suggestions)
 
-with open('cliche_suggestions.py', 'w') as f:
+with open('app/data/cliche_suggestions.py', 'w') as f:
     f.write('CLICHE_SUGGESTIONS = {\n')
     for term, suggestions in new_cliche_suggestions.items():
         f.write(f'    "{term}": {suggestions},\n')

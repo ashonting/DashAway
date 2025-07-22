@@ -1,5 +1,5 @@
-from ai_tells import AI_TELLS
-from ai_tell_suggestions import AI_TELL_SUGGESTIONS
+from app.data.ai_tells import AI_TELLS
+from app.data.ai_tell_suggestions import AI_TELL_SUGGESTIONS
 
 missing_ai_tells = [a for a in AI_TELLS if a not in AI_TELL_SUGGESTIONS]
 

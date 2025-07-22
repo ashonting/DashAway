@@ -1,21 +1,48 @@
+import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.routes import analysis
+from dotenv import load_dotenv
 
-app = FastAPI()
+from .database import engine, Base
+from .routes import analysis, auth, users, history, stats, paddle, admin
 
-origins = ["*"]
+load_dotenv("/app/.env")
+
+Base.metadata.create_all(bind=engine)
+
+app = FastAPI(
+    title="DashAway API",
+    description="Text cleaning and analysis API",
+    version="1.0.0"
+)
+
+# Get CORS origins from environment variable
+cors_origins = os.getenv("CORS_ORIGINS", "http://localhost:3000").split(",")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=cors_origins,
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
 
-app.include_router(analysis.router)
+app.include_router(analysis.router, prefix="/api")
+app.include_router(auth.router, prefix="/api/auth", tags=["auth"])
+app.include_router(users.router, prefix="/api/users", tags=["users"])
+app.include_router(history.router, prefix="/api/history", tags=["history"])
+app.include_router(stats.router, prefix="/api/stats", tags=["stats"])
+app.include_router(paddle.router, prefix="/api/paddle", tags=["paddle"])
+app.include_router(admin.router, prefix="/api/admin", tags=["admin"])
 
 @app.get("/")
 def read_root():
     return {"message": "DashAway Backend is running"}
+
+@app.get("/hello")
+def hello_world():
+    return {"message": "Hello from FastAPI!"}
+
+@app.get("/faq")
+def get_faq_root():
+    return {"message": "FAQ endpoint - use /api/faq for actual FAQ data"}

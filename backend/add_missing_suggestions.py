@@ -1,9 +1,9 @@
-from jargon import JARGON
-from jargon_suggestions import JARGON_SUGGESTIONS
-from ai_tells import AI_TELLS
-from ai_tell_suggestions import AI_TELL_SUGGESTIONS
-from cliches import CLICHES
-from cliche_suggestions import CLICHE_SUGGESTIONS
+from app.data.jargon import JARGON
+from app.data.jargon_suggestions import JARGON_SUGGESTIONS
+from app.data.ai_tells import AI_TELLS
+from app.data.ai_tell_suggestions import AI_TELL_SUGGESTIONS
+from app.data.cliches import CLICHES
+from app.data.cliche_suggestions import CLICHE_SUGGESTIONS
 
 
 def add_missing_suggestions(issue_list, suggestions_dict, dict_name, filename):
