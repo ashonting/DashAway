@@ -38,7 +38,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users/me`);
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users/me`, {
+          method: 'GET',
+          credentials: 'include', // Include cookies in the request
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
         if (res.ok) {
           const data = await res.json();
           setUser(data);
@@ -66,7 +72,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // The backend will set the httpOnly cookie. Here we just update the user state.
     const fetchUser = async () => {
         try {
-          const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users/me`, { headers: { 'Authorization': `Bearer ${token}` } });
+          const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users/me`, { 
+            method: 'GET',
+            credentials: 'include', // Include cookies in the request
+            headers: { 
+              'Content-Type': 'application/json',
+            } 
+          });
           if (res.ok) {
             const data = await res.json();
             setUser(data);
@@ -87,7 +99,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const logout = async () => {
-    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/logout`, { method: 'POST' });
+    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/logout`, { 
+      method: 'POST',
+      credentials: 'include' // Include cookies in the request
+    });
     setUser(null);
     router.push('/login');
   };

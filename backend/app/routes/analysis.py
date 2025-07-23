@@ -44,10 +44,24 @@ def get_db():
 @router.post("/test-auth")
 def test_auth(http_request: Request, current_user: Optional[User] = Depends(get_current_user_optional)):
     print("DEBUG: test-auth called")
-    return {
+    
+    # Debug information
+    debug_info = {
         "user": current_user.email if current_user else None,
-        "authenticated": current_user is not None
+        "authenticated": current_user is not None,
+        "user_tier": get_user_tier(current_user, SessionLocal()) if current_user else "anonymous",
+        "cookies": dict(http_request.cookies),
+        "headers": dict(http_request.headers),
+        "has_auth_header": "authorization" in http_request.headers,
+        "has_access_token_cookie": "access_token" in http_request.cookies,
     }
+    
+    if current_user:
+        debug_info["user_id"] = current_user.id
+        debug_info["usage_count"] = current_user.usage_count
+        
+    print(f"DEBUG: {debug_info}")
+    return debug_info
 
 @router.post("/process")
 def process_text(request: TextProcessRequest, http_request: Request, response: Response, db: Session = Depends(get_db), current_user: Optional[User] = Depends(get_current_user_optional)):

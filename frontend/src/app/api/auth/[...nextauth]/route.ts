@@ -1,7 +1,6 @@
 import NextAuth, { Account, Profile, User } from "next-auth"
 import GoogleProvider from "next-auth/providers/google"
 import { AdapterUser } from "next-auth/adapters";
-import Credentials from "next-auth/providers/credentials";
 
 const authOptions = {
   providers: [
@@ -11,32 +10,40 @@ const authOptions = {
     }),
   ],
   callbacks: {
-    async signIn({ user, account, profile, email, credentials }: {
+    async signIn({ user, account, profile }: {
       user: User | AdapterUser;
       account: Account | null;
       profile?: Profile;
-      email?: { verificationRequest?: boolean };
-      credentials?: Record<string, any>;
     }) {
       if (account && account.provider === "google") {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/google`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ token: account.id_token }),
-        });
+        try {
+          const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/google`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ token: account.id_token }),
+          });
 
-        if (response.ok) {
-          const data = await response.json();
-          // How do we get the access token to the client?
-          // We can't set a cookie here, because this is a server-side callback.
-          // We could return the token in the JWT, but that's not ideal.
-          // For now, we'll just return true and assume the backend sets the cookie.
-          return true;
+          if (response.ok) {
+            // Backend sets the httpOnly cookie, so sign-in is successful
+            return true;
+          } else {
+            console.error('Backend Google auth failed:', await response.text());
+            return false;
+          }
+        } catch (error) {
+          console.error('Error during Google auth:', error);
+          return false;
         }
-        return false;
       }
       return true;
     },
+    async redirect({ url, baseUrl }) {
+      // Redirect to main page after successful login
+      return baseUrl;
+    },
+  },
+  pages: {
+    error: '/login', // Redirect to login page on error
   },
 }
 

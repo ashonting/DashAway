@@ -1,3 +1,4 @@
+import os
 from fastapi import APIRouter, Depends, HTTPException, status, Response
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
@@ -54,7 +55,8 @@ def google_login(token: dict, db: Session = Depends(get_db)):
         from google.oauth2 import id_token
         from google.auth.transport import requests
 
-        id_info = id_token.verify_oauth2_token(token['token'], requests.Request(), "YOUR_GOOGLE_CLIENT_ID")
+        google_client_id = os.getenv("GOOGLE_CLIENT_ID")
+        id_info = id_token.verify_oauth2_token(token['token'], requests.Request(), google_client_id)
 
         email = id_info['email']
         user = db.query(User).filter(User.email == email).first()
