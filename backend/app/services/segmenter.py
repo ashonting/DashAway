@@ -29,25 +29,69 @@ def get_thesaurus_synonyms(word):
     
     return list(synonyms)[:4]
 
+def clean_text_for_readability(text: str) -> str:
+    """Clean text for more accurate readability calculation"""
+    # Remove URLs
+    text = re.sub(r'https?://\S+', '', text)
+    
+    # Remove emojis (Unicode emoji ranges)
+    emoji_pattern = re.compile(
+        "["
+        "\U0001F600-\U0001F64F"  # emoticons
+        "\U0001F300-\U0001F5FF"  # symbols & pictographs
+        "\U0001F680-\U0001F6FF"  # transport & map symbols
+        "\U0001F1E0-\U0001F1FF"  # flags (iOS)
+        "\U00002702-\U000027B0"  # Dingbats
+        "\U000024C2-\U0001F251"
+        "]+", flags=re.UNICODE
+    )
+    text = emoji_pattern.sub('', text)
+    
+    # Normalize em-dashes to regular dashes for readability calculation
+    text = re.sub(r'[—–―]', '-', text)
+    
+    # Remove extra whitespace
+    text = re.sub(r'\s+', ' ', text).strip()
+    
+    return text
+
 def segment_text(text: str):
-    all_issues = []
+    try:
+        all_issues = []
 
-    # --- Pass 1: Atomic Issues (Highest Priority) ---
-    atomic_issue_types = {
-        "em_dash": {"pattern": re.compile("[—–―]"), "suggestions": EM_DASH_SUGGESTIONS, "priority": 0},
-        "cliche": {"pattern": re.compile('|'.join(r'(?<!\w)' + re.escape(c) + r'(?!\w)' for c in CLICHES), re.IGNORECASE), "suggestions": CLICHE_SUGGESTIONS, "priority": 1},
-        "jargon": {"pattern": re.compile('|'.join(r'(?<!\w)' + re.escape(j) + r'(?!\w)' for j in JARGON), re.IGNORECASE), "suggestions": JARGON_SUGGESTIONS, "priority": 1},
-        "ai_tell": {"pattern": re.compile('|'.join(r'(?<!\w)' + re.escape(a) + r'(?!\w)' for a in AI_TELLS), re.IGNORECASE), "suggestions": AI_TELL_SUGGESTIONS, "priority": 1},
-    }
+        # --- Pass 1: Atomic Issues (Highest Priority) ---
+        atomic_issue_types = {
+            "em_dash": {"pattern": re.compile("[—–―]"), "suggestions": EM_DASH_SUGGESTIONS, "priority": 0},
+            "cliche": {"pattern": re.compile('|'.join(r'(?<!\w)' + re.escape(c) + r'(?!\w)' for c in CLICHES), re.IGNORECASE), "suggestions": CLICHE_SUGGESTIONS, "priority": 1},
+            "jargon": {"pattern": re.compile('|'.join(r'(?<!\w)' + re.escape(j) + r'(?!\w)' for j in JARGON), re.IGNORECASE), "suggestions": JARGON_SUGGESTIONS, "priority": 1},
+            "ai_tell": {"pattern": re.compile('|'.join(r'(?<!\w)' + re.escape(a) + r'(?!\w)' for a in AI_TELLS), re.IGNORECASE), "suggestions": AI_TELL_SUGGESTIONS, "priority": 1},
+        }
 
-    for issue_type, data in atomic_issue_types.items():
-        for match in data['pattern'].finditer(text):
-            all_issues.append({
-                "start": match.start(), "end": match.end(), "type": issue_type,
-                "suggestions": data.get("suggestions", {}), "priority": data['priority']
-            })
+        for issue_type, data in atomic_issue_types.items():
+            try:
+                for match in data['pattern'].finditer(text):
+                    all_issues.append({
+                        "start": match.start(), "end": match.end(), "type": issue_type,
+                        "suggestions": data.get("suggestions", {}), "priority": data['priority']
+                    })
+            except Exception as e:
+                print(f"Error processing {issue_type}: {e}")
+                continue
 
-    readability_score = textstat.flesch_kincaid_grade(text)
+        # Calculate readability on cleaned text for more accurate results
+        cleaned_text = clean_text_for_readability(text)
+        if len(cleaned_text.strip()) > 0:
+            readability_score = textstat.flesch_kincaid_grade(cleaned_text)
+        else:
+            readability_score = 0.0
+    except Exception as e:
+        print(f"Error in segment_text: {e}")
+        # Return basic fallback if there's any error
+        return {
+            "segments": [{"type": "text", "content": text, "suggestions": []}], 
+            "readability_score": 0.0,
+            "error": str(e)
+        }
 
     if not all_issues:
         return {"segments": [{"type": "text", "content": text, "suggestions": []}], "readability_score": readability_score}

@@ -89,8 +89,15 @@ def process_text(request: TextProcessRequest, http_request: Request, response: R
 @router.post("/readability")
 def get_readability(request: TextProcessRequest):
     try:
+        from ..services.segmenter import clean_text_for_readability
+        
         text = request.text
-        score = textstat.flesch_kincaid_grade(text)
+        cleaned_text = clean_text_for_readability(text)
+        
+        # Use cleaned text for more accurate readability calculation
+        score = textstat.flesch_kincaid_grade(cleaned_text) if cleaned_text.strip() else 0.0
+        
+        # Use original text for sentence analysis (to preserve user's actual content)
         sentences = nltk.sent_tokenize(text)
         long_sentences = [
             s for s in sentences if len(
@@ -102,9 +109,13 @@ def get_readability(request: TextProcessRequest):
         return {
             "readability_score": score,
             "long_sentences": long_sentences,
-            "complex_words": complex_words
+            "complex_words": complex_words,
+            "cleaned_text_length": len(cleaned_text),
+            "original_text_length": len(text)
         }
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         return {"error": str(e)}
 
 @router.post("/feedback")
