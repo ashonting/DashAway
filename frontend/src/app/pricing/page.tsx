@@ -1,7 +1,7 @@
 'use client';
 import Script from 'next/script';
 import Link from 'next/link';
-import { useAuth } from '@/contexts/AuthContext';
+import { useSupabaseAuth } from '@/contexts/SupabaseAuthContext';
 import { Check, ArrowRight, Star, Users, Zap } from 'lucide-react';
 
 declare global {
@@ -11,7 +11,7 @@ declare global {
 }
 
 export default function Pricing() {
-    const { user } = useAuth();
+    const { user } = useSupabaseAuth();
     
     const handleProCheckout = () => {
         alert("Paddle checkout is not yet implemented.");
@@ -64,7 +64,7 @@ export default function Pricing() {
                     </div>
 
                     {/* Pricing Cards */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
                         {/* Basic Plan */}
                         <div className="relative bg-background rounded-2xl border border-border/40 p-8 hover:border-border/60 transition-all duration-300">
                             <div className="text-center mb-8">
@@ -146,36 +146,6 @@ export default function Pricing() {
                             </div>
                         </div>
 
-                        {/* Enterprise Plan */}
-                        <div className="relative bg-background rounded-2xl border border-border/40 p-8 hover:border-border/60 transition-all duration-300 opacity-60">
-                            <div className="text-center mb-8">
-                                <div className="inline-flex items-center justify-center w-12 h-12 bg-gray-100 dark:bg-gray-800 rounded-xl mb-4">
-                                    <Users className="h-6 w-6 text-gray-600 dark:text-gray-400" />
-                                </div>
-                                <h3 className="text-2xl font-bold mb-2">Enterprise</h3>
-                                <p className="text-foreground/60">For teams & organizations</p>
-                                <div className="mt-6">
-                                    <span className="text-2xl font-semibold text-foreground/80">Coming Soon</span>
-                                </div>
-                            </div>
-
-                            <div className="space-y-4 mb-8 text-center">
-                                <p className="text-foreground/60">Advanced features for teams:</p>
-                                <ul className="space-y-2 text-sm text-foreground/50">
-                                    <li>• Team collaboration tools</li>
-                                    <li>• API access & integrations</li>
-                                    <li>• Custom brand guidelines</li>
-                                    <li>• Advanced analytics</li>
-                                    <li>• Priority support & training</li>
-                                </ul>
-                            </div>
-
-                            <div className="text-center">
-                                <button disabled className="inline-flex items-center justify-center w-full px-6 py-3 border border-border rounded-lg cursor-not-allowed opacity-50">
-                                    Notify Me
-                                </button>
-                            </div>
-                        </div>
                     </div>
 
                     {/* FAQ Section */}
