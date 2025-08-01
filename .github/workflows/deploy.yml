@@ -64,6 +64,11 @@ jobs:
     #     npm test -- --watchAll=false
 
     - name: Build Frontend
+      env:
+        NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+        NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+        NEXT_PUBLIC_API_URL: https://dashaway.io
+        NEXTAUTH_URL: https://dashaway.io
       run: |
         cd frontend
         npm run build
