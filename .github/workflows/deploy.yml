@@ -84,13 +84,15 @@ jobs:
     - name: Setup SSH Key
       run: |
         mkdir -p ~/.ssh
-        printf '%s\n' "${{ secrets.SSH_KEY }}" > ~/.ssh/deploy_key
+        echo "${{ secrets.SSH_KEY_B64 }}" | base64 -d > ~/.ssh/deploy_key
         chmod 600 ~/.ssh/deploy_key
         ssh-keyscan -H ${{ secrets.HOST }} >> ~/.ssh/known_hosts
         # Debug: Check key format
         head -1 ~/.ssh/deploy_key
         tail -1 ~/.ssh/deploy_key
         wc -l ~/.ssh/deploy_key
+        # Test the key format
+        ssh-keygen -y -f ~/.ssh/deploy_key | head -c 50
 
     - name: Deploy to Production Server
       run: |
