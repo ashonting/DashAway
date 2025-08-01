@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Eye, Trash2, Shield, Users, MessageSquare, Crown, UserCheck, UserX } from 'lucide-react';
+import { Eye, Trash2, Shield, Users, MessageSquare, Crown, UserCheck, UserX, Search, Filter, DollarSign, TrendingUp, Activity } from 'lucide-react';
 
 interface Feedback {
   id: number;
@@ -12,6 +12,43 @@ interface Feedback {
 interface AdminStats {
   total_feedback: number;
   total_faqs: number;
+}
+
+interface Analytics {
+  users: {
+    total: number;
+    active: number;
+    pro: number;
+    free: number;
+    recent_signups: number;
+  };
+  revenue: {
+    mrr: number;
+    arr: number;
+    active_subscriptions: number;
+    average_revenue_per_user: number;
+  };
+  usage: {
+    total_cleanings: number;
+    average_per_user: number;
+    top_users: Array<{
+      email: string;
+      usage_count: number;
+      is_pro: boolean;
+    }>;
+  };
+  metrics: {
+    conversion_rate: number;
+    churn_rate: number;
+    customer_lifetime_value: number;
+  };
+}
+
+interface UsersResponse {
+  users: AdminUser[];
+  total: number;
+  offset: number;
+  limit: number;
 }
 
 interface AdminUser {
@@ -28,7 +65,15 @@ export default function AdminPage() {
   const [password, setPassword] = useState('');
   const [feedback, setFeedback] = useState<Feedback[]>([]);
   const [stats, setStats] = useState<AdminStats | null>(null);
+  const [analytics, setAnalytics] = useState<Analytics | null>(null);
   const [users, setUsers] = useState<AdminUser[]>([]);
+  const [totalUsers, setTotalUsers] = useState(0);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [proFilter, setProFilter] = useState<boolean | null>(null);
+  const [sortBy, setSortBy] = useState('email');
+  const [sortOrder, setSortOrder] = useState('asc');
+  const [currentPage, setCurrentPage] = useState(0);
+  const [usersPerPage] = useState(25);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -78,42 +123,48 @@ export default function AdminPage() {
         setStats(statsData);
       }
 
-      // Load users
-      const usersResponse = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/admin/users?password=${encodeURIComponent(password)}`
+      // Load enhanced analytics
+      const analyticsResponse = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/admin/analytics?password=${encodeURIComponent(password)}`
       );
-      if (usersResponse.ok) {
-        const usersData = await usersResponse.json();
-        setUsers(usersData);
+      if (analyticsResponse.ok) {
+        const analyticsData = await analyticsResponse.json();
+        setAnalytics(analyticsData);
       }
+
+      // Load users with current filters
+      loadUsers();
     } catch (error) {
       console.error('Failed to load admin data:', error);
     }
   };
 
-  const populateFAQs = async () => {
-    if (!confirm('This will add default FAQs to the database. Continue?')) {
-      return;
-    }
-
+  const loadUsers = async () => {
     try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/admin/populate-faqs?password=${encodeURIComponent(password)}`,
-        { method: 'POST' }
-      );
+      const params = new URLSearchParams({
+        password,
+        limit: usersPerPage.toString(),
+        offset: (currentPage * usersPerPage).toString(),
+        sort_by: sortBy,
+        sort_order: sortOrder
+      });
 
-      if (response.ok) {
-        const result = await response.json();
-        alert(result.message);
-        loadAdminData(); // Refresh stats
-      } else {
-        const error = await response.json();
-        alert(error.detail || 'Failed to populate FAQs');
+      if (searchQuery) params.append('search', searchQuery);
+      if (proFilter !== null) params.append('is_pro', proFilter.toString());
+
+      const usersResponse = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/admin/users?${params}`
+      );
+      if (usersResponse.ok) {
+        const usersData: UsersResponse = await usersResponse.json();
+        setUsers(usersData.users);
+        setTotalUsers(usersData.total);
       }
     } catch (error) {
-      alert('Network error occurred');
+      console.error('Failed to load users:', error);
     }
   };
+
 
   const deleteFeedback = async (feedbackId: number) => {
     if (!confirm('Are you sure you want to delete this feedback?')) {
@@ -180,6 +231,17 @@ export default function AdminPage() {
     }
   };
 
+  // Load users when filters change
+  useEffect(() => {
+    if (isAuthenticated) {
+      const timeoutId = setTimeout(() => {
+        loadUsers();
+      }, 300); // Debounce search
+      
+      return () => clearTimeout(timeoutId);
+    }
+  }, [searchQuery, proFilter, sortBy, sortOrder, currentPage, isAuthenticated]);
+
   if (!isAuthenticated) {
     return (
       <main className="min-h-screen flex items-center justify-center px-4 bg-background">
@@ -229,23 +291,68 @@ export default function AdminPage() {
     <main className="min-h-screen bg-background py-8">
       <div className="container mx-auto px-4">
         <div className="mb-8">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-4xl font-bold text-foreground mb-2">Admin Dashboard</h1>
-              <p className="text-foreground/60">Manage user feedback and system statistics</p>
-            </div>
-            <button
-              onClick={populateFAQs}
-              className="px-4 py-2 bg-gradient-to-r from-teal-600 to-purple-600 text-white font-semibold rounded-lg hover:scale-105 transform transition-all duration-200 shadow-lg"
-            >
-              Populate FAQs
-            </button>
+          <div>
+            <h1 className="text-4xl font-bold text-foreground mb-2">Admin Dashboard</h1>
+            <p className="text-foreground/60">Manage users, analytics, and system feedback</p>
           </div>
         </div>
 
-        {/* Stats Cards */}
+        {/* Enhanced Analytics Cards */}
+        {analytics && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            {/* User Metrics */}
+            <div className="bg-card p-6 rounded-2xl border border-border/40">
+              <div className="flex items-center">
+                <Users className="h-8 w-8 text-blue-500 mr-3" />
+                <div>
+                  <p className="text-2xl font-bold text-foreground">{analytics.users.total}</p>
+                  <p className="text-sm text-foreground/60">Total Users</p>
+                  <p className="text-xs text-foreground/40">{analytics.users.pro} Pro • {analytics.users.free} Free</p>
+                </div>
+              </div>
+            </div>
+            
+            {/* Revenue Metrics */}
+            <div className="bg-card p-6 rounded-2xl border border-border/40">
+              <div className="flex items-center">
+                <DollarSign className="h-8 w-8 text-green-500 mr-3" />
+                <div>
+                  <p className="text-2xl font-bold text-foreground">${analytics.revenue.mrr}</p>
+                  <p className="text-sm text-foreground/60">Monthly Revenue</p>
+                  <p className="text-xs text-foreground/40">${analytics.revenue.arr} ARR</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Conversion Rate */}
+            <div className="bg-card p-6 rounded-2xl border border-border/40">
+              <div className="flex items-center">
+                <TrendingUp className="h-8 w-8 text-purple-500 mr-3" />
+                <div>
+                  <p className="text-2xl font-bold text-foreground">{analytics.metrics.conversion_rate}%</p>
+                  <p className="text-sm text-foreground/60">Conversion Rate</p>
+                  <p className="text-xs text-foreground/40">{analytics.users.recent_signups} new this month</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Usage Stats */}
+            <div className="bg-card p-6 rounded-2xl border border-border/40">
+              <div className="flex items-center">
+                <Activity className="h-8 w-8 text-orange-500 mr-3" />
+                <div>
+                  <p className="text-2xl font-bold text-foreground">{analytics.usage.total_cleanings}</p>
+                  <p className="text-sm text-foreground/60">Total Cleanings</p>
+                  <p className="text-xs text-foreground/40">{analytics.usage.average_per_user} avg per user</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Basic Stats Cards */}
         {stats && (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
             <div className="bg-card p-6 rounded-2xl border border-border/40">
               <div className="flex items-center">
                 <MessageSquare className="h-8 w-8 text-blue-500 mr-3" />
@@ -265,24 +372,78 @@ export default function AdminPage() {
                 </div>
               </div>
             </div>
-
-            <div className="bg-card p-6 rounded-2xl border border-border/40">
-              <div className="flex items-center">
-                <Users className="h-8 w-8 text-purple-500 mr-3" />
-                <div>
-                  <p className="text-2xl font-bold text-foreground">Active</p>
-                  <p className="text-sm text-foreground/60">System Status</p>
-                </div>
-              </div>
-            </div>
           </div>
         )}
 
         {/* User Management */}
         <div className="bg-card rounded-2xl border border-border/40 overflow-hidden mb-8">
           <div className="p-6 border-b border-border/40">
-            <h2 className="text-2xl font-bold text-foreground">User Management</h2>
-            <p className="text-foreground/60">Manage user accounts and Pro subscriptions</p>
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h2 className="text-2xl font-bold text-foreground">User Management</h2>
+                <p className="text-foreground/60">Manage user accounts and Pro subscriptions</p>
+              </div>
+              <div className="text-sm text-foreground/60">
+                {totalUsers} total users
+              </div>
+            </div>
+            
+            {/* Search and Filter Controls */}
+            <div className="flex flex-col sm:flex-row gap-4">
+              <div className="flex-1">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-foreground/40" />
+                  <input
+                    type="text"
+                    placeholder="Search by email..."
+                    value={searchQuery}
+                    onChange={(e) => {
+                      setSearchQuery(e.target.value);
+                      setCurrentPage(0);
+                    }}
+                    className="w-full pl-10 pr-4 py-2 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
+                  />
+                </div>
+              </div>
+              
+              <div className="flex gap-2">
+                <select
+                  value={proFilter === null ? 'all' : proFilter.toString()}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    setProFilter(value === 'all' ? null : value === 'true');
+                    setCurrentPage(0);
+                  }}
+                  className="px-3 py-2 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
+                >
+                  <option value="all">All Users</option>
+                  <option value="true">Pro Only</option>
+                  <option value="false">Free Only</option>
+                </select>
+                
+                <select
+                  value={`${sortBy}-${sortOrder}`}
+                  onChange={(e) => {
+                    const [field, order] = e.target.value.split('-');
+                    setSortBy(field);
+                    setSortOrder(order);
+                  }}
+                  className="px-3 py-2 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
+                >
+                  <option value="email-asc">Email A-Z</option>
+                  <option value="email-desc">Email Z-A</option>
+                  <option value="usage_count-desc">Most Usage</option>
+                  <option value="usage_count-asc">Least Usage</option>
+                </select>
+                
+                <button
+                  onClick={loadUsers}
+                  className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
+                >
+                  <Filter className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
           </div>
 
           <div className="p-6">
@@ -309,6 +470,9 @@ export default function AdminPage() {
                           <div>
                             <p className="font-medium text-foreground">{user.email}</p>
                             <p className="text-sm text-foreground/60">ID: {user.id}</p>
+                            {user.subscription_id && (
+                              <p className="text-xs text-foreground/40">Sub: {user.subscription_id}</p>
+                            )}
                           </div>
                         </td>
                         <td className="py-3 px-2">
@@ -358,9 +522,80 @@ export default function AdminPage() {
                   </tbody>
                 </table>
               </div>
+                {/* Pagination Controls */}
+                {totalUsers > usersPerPage && (
+                  <div className="flex items-center justify-between mt-6 pt-4 border-t border-border/40">
+                    <div className="text-sm text-foreground/60">
+                      Showing {currentPage * usersPerPage + 1}-{Math.min((currentPage + 1) * usersPerPage, totalUsers)} of {totalUsers} users
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => {
+                          setCurrentPage(Math.max(0, currentPage - 1));
+                        }}
+                        disabled={currentPage === 0}
+                        className="px-3 py-2 bg-background border border-border rounded-lg text-foreground hover:bg-accent/50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      >
+                        Previous
+                      </button>
+                      <span className="px-3 py-2 text-foreground/60">
+                        Page {currentPage + 1} of {Math.ceil(totalUsers / usersPerPage)}
+                      </span>
+                      <button
+                        onClick={() => {
+                          setCurrentPage(Math.min(Math.ceil(totalUsers / usersPerPage) - 1, currentPage + 1));
+                        }}
+                        disabled={currentPage >= Math.ceil(totalUsers / usersPerPage) - 1}
+                        className="px-3 py-2 bg-background border border-border rounded-lg text-foreground hover:bg-accent/50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      >
+                        Next
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
             )}
           </div>
         </div>
+
+        {/* Top Users Section */}
+        {analytics && analytics.usage.top_users.length > 0 && (
+          <div className="bg-card rounded-2xl border border-border/40 overflow-hidden mb-8">
+            <div className="p-6 border-b border-border/40">
+              <h2 className="text-2xl font-bold text-foreground">Top Users by Usage</h2>
+              <p className="text-foreground/60">Most active users in the system</p>
+            </div>
+            <div className="p-6">
+              <div className="space-y-3">
+                {analytics.usage.top_users.map((user, index) => (
+                  <div
+                    key={user.email}
+                    className="flex items-center justify-between p-3 bg-background/50 rounded-lg border border-border/20"
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="w-8 h-8 bg-primary/20 text-primary rounded-full flex items-center justify-center text-sm font-bold">
+                        {index + 1}
+                      </span>
+                      <div>
+                        <p className="font-medium text-foreground">{user.email}</p>
+                        <div className="flex items-center gap-2">
+                          {user.is_pro && <Crown className="h-3 w-3 text-yellow-500" />}
+                          <span className="text-sm text-foreground/60">
+                            {user.is_pro ? 'Pro User' : 'Free User'}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-lg font-bold text-foreground">{user.usage_count}</p>
+                      <p className="text-sm text-foreground/60">cleanings</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Feedback List */}
         <div className="bg-card rounded-2xl border border-border/40 overflow-hidden">
