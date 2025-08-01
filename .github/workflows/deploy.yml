@@ -84,9 +84,13 @@ jobs:
     - name: Setup SSH Key
       run: |
         mkdir -p ~/.ssh
-        echo "${{ secrets.SSH_KEY }}" > ~/.ssh/deploy_key
+        printf '%s\n' "${{ secrets.SSH_KEY }}" > ~/.ssh/deploy_key
         chmod 600 ~/.ssh/deploy_key
         ssh-keyscan -H ${{ secrets.HOST }} >> ~/.ssh/known_hosts
+        # Debug: Check key format
+        head -1 ~/.ssh/deploy_key
+        tail -1 ~/.ssh/deploy_key
+        wc -l ~/.ssh/deploy_key
 
     - name: Deploy to Production Server
       run: |
