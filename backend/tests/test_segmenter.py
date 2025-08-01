@@ -1,5 +1,5 @@
 import pytest
-from ..app.services.segmenter import segment_text
+from app.services.segmenter import segment_text
 
 def test_segment_text_em_dash():
     text = "This is a test—with an em-dash."
