@@ -165,7 +165,6 @@ export default function AdminPage() {
     }
   };
 
-
   const deleteFeedback = async (feedbackId: number) => {
     if (!confirm('Are you sure you want to delete this feedback?')) {
       return;
@@ -521,7 +520,7 @@ export default function AdminPage() {
                     ))}
                   </tbody>
                 </table>
-              </div>
+                
                 {/* Pagination Controls */}
                 {totalUsers > usersPerPage && (
                   <div className="flex items-center justify-between mt-6 pt-4 border-t border-border/40">
