@@ -46,7 +46,7 @@ jobs:
     - name: Install Frontend dependencies
       run: |
         cd frontend
-        npm ci
+        npm install
 
     - name: Run Backend Tests
       env:
