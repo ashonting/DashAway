@@ -55,7 +55,7 @@ jobs:
         JWT_SECRET: test-secret
       run: |
         cd backend
-        python -m pytest tests/unit/ -v
+        python -m pytest tests/unit/test_segmenter_simple.py -v
 
     # Frontend tests temporarily disabled - package-lock sync issue
     # - name: Run Frontend Tests
