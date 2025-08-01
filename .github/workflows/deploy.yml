@@ -82,17 +82,19 @@ jobs:
     - uses: actions/checkout@v4
 
     - name: Deploy to Production Server
-      uses: appleboy/ssh-action@v1.0.0
+      uses: appleboy/ssh-action@v1.0.3
       with:
         host: ${{ secrets.HOST }}
         username: ${{ secrets.USERNAME }}
         key: ${{ secrets.SSH_KEY }}
+        port: 22
+        debug: true
         script: |
-          cd /var/www/DashAway
+          cd /root/DashAway
           
           # Create backup of current deployment
           sudo docker-compose -f docker-compose.prod.yml down
-          sudo cp -r /var/www/DashAway /var/www/DashAway-backup-$(date +%Y%m%d-%H%M%S)
+          sudo cp -r /root/DashAway /root/DashAway-backup-$(date +%Y%m%d-%H%M%S)
           
           # Pull latest code
           git pull origin main
@@ -118,5 +120,5 @@ jobs:
           echo "Deployment successful!"
           
           # Clean up old backups (keep last 3)
-          cd /var/www
+          cd /root
           ls -dt DashAway-backup-* | tail -n +4 | xargs rm -rf
