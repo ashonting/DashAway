@@ -69,5 +69,3 @@ export function getPageMetadata(pageTitle?: string, pageDescription?: string) {
   }
 }
 
-// Explicit exports for better module resolution
-export { siteMetadata, pageMetadata }
