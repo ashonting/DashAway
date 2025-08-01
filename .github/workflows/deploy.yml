@@ -81,15 +81,16 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
+    - name: Setup SSH Key
+      run: |
+        mkdir -p ~/.ssh
+        echo "${{ secrets.SSH_KEY }}" > ~/.ssh/deploy_key
+        chmod 600 ~/.ssh/deploy_key
+        ssh-keyscan -H ${{ secrets.HOST }} >> ~/.ssh/known_hosts
+
     - name: Deploy to Production Server
-      uses: appleboy/ssh-action@v1.0.3
-      with:
-        host: ${{ secrets.HOST }}
-        username: ${{ secrets.USERNAME }}
-        key: ${{ secrets.SSH_KEY }}
-        port: 22
-        debug: true
-        script: |
+      run: |
+        ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ${{ secrets.USERNAME }}@${{ secrets.HOST }} << 'ENDSSH'
           cd /root/DashAway
           
           # Create backup of current deployment
@@ -122,3 +123,4 @@ jobs:
           # Clean up old backups (keep last 3)
           cd /root
           ls -dt DashAway-backup-* | tail -n +4 | xargs rm -rf
+        ENDSSH
