@@ -53,14 +53,14 @@ export default function RootLayout({
         <meta property="og:title" content={siteMetadata.title} />
         <meta property="og:description" content={siteMetadata.description} />
         <meta property="og:url" content={siteMetadata.url} />
-        <meta property="og:image" content={`${siteMetadata.url}${siteMetadata.image}`} />
+        <meta property="og:image" content={`${siteMetadata.url}${siteMetadata.ogImage}`} />
         <meta property="og:type" content="website" />
         
         {/* Twitter */}
         <meta name="twitter:card" content={siteMetadata.twitterCard} />
         <meta name="twitter:title" content={siteMetadata.title} />
         <meta name="twitter:description" content={siteMetadata.description} />
-        <meta name="twitter:image" content={`${siteMetadata.url}${siteMetadata.image}`} />
+        <meta name="twitter:image" content={`${siteMetadata.url}${siteMetadata.ogImage}`} />
         
         {/* Canonical */}
         <link rel="canonical" href={siteMetadata.url} />
