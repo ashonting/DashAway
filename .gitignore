@@ -35,6 +35,8 @@ ENV/
 env.bak/
 venv.bak/
 backend/venv/
+backend/test_env/
+test_env/
 
 # IDE/Editor
 .vscode/
@@ -86,3 +88,9 @@ yarn-error.log*
 # Temporary files
 tmp/
 temp/
+*.tar.gz
+paddle_deployment_*/
+server-update-package/
+server-update-package*
+*.bak
+*~

@@ -18,20 +18,20 @@ export default function Features() {
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 <FeatureCard 
-                    title="🤖 Stop the AI Detection" 
-                    description="Remove phrases like 'delve into,' 'furthermore,' and 'in conclusion' that scream AI-generated content. Avoid penalties and build trust." 
+                    title="⚡ Eliminate Em-Dashes Instantly" 
+                    description="Remove the #1 AI tell—excessive em-dashes that ChatGPT and Claude love to use. Instantly spot and replace these dead giveaways with proper punctuation." 
                 />
                 <FeatureCard 
-                    title="⚡ Cut Reading Time by 40%" 
-                    description="Replace jargon like 'utilize' with 'use' and 'facilitate' with 'help.' Complex word simplification and long sentence restructuring coming soon." 
+                    title="🤖 Stop AI Detection Tools" 
+                    description="Remove phrases like &apos;delve into,&apos; &apos;furthermore,&apos; and &apos;in conclusion&apos; that scream AI-generated content. Avoid penalties and build trust." 
                 />
                 <FeatureCard 
                     title="💰 Increase Engagement 3x" 
-                    description="Eliminate clichés that make readers scroll past. Replace 'game-changer' and 'cutting-edge' with specific, compelling language." 
+                    description="Eliminate clichés that make readers scroll past. Replace &apos;game-changer&apos; and &apos;cutting-edge&apos; with specific, compelling language." 
                 />
                 <FeatureCard 
                     title="🎯 Convert More Leads" 
-                    description="Professional writing that doesn't sound corporate builds trust. Turn more visitors into customers with authentic voice." 
+                    description="Professional writing that doesn&apos;t sound corporate builds trust. Turn more visitors into customers with authentic voice." 
                 />
                 <FeatureCard 
                     title="⏱️ Save 2+ Hours Per Article" 

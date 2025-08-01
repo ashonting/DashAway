@@ -8,9 +8,8 @@ class DocumentHistory(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    title = Column(String, nullable=False)
-    content = Column(Text, nullable=False)
-    analysis_results = Column(JSON, nullable=False)
+    original_text = Column(Text, nullable=False)
+    cleaned_text = Column(Text, nullable=False)
     created_at = Column(String, default=lambda: datetime.utcnow().isoformat())
 
     # user = relationship("User", back_populates="history")

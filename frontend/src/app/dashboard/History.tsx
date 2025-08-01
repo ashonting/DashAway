@@ -1,6 +1,6 @@
 'use client';
 
-import { useAuth } from '@/contexts/AuthContext';
+import { useSupabaseAuth } from '@/contexts/SupabaseAuthContext';
 import { useEffect, useState } from 'react';
 
 interface HistoryItem {
@@ -11,20 +11,36 @@ interface HistoryItem {
 }
 
 export default function History() {
-  const { user } = useAuth();
+  const { user } = useSupabaseAuth();
   const [history, setHistory] = useState<HistoryItem[]>([]);
 
   useEffect(() => {
     const fetchHistory = async () => {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/history`);
-      if (res.ok) {
-        const data = await res.json();
-        setHistory(data);
+      if (!user) return;
+      try {
+        // Get the current session to access the JWT token
+        const { supabase } = await import('@/lib/supabase');
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (session?.access_token) {
+          const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/history`, {
+            headers: {
+              'Authorization': `Bearer ${session.access_token}`,
+            },
+          });
+          if (response.ok) {
+            const data = await response.json();
+            setHistory(data);
+          } else {
+            console.error('Failed to fetch history:', response.status, response.statusText);
+          }
+        }
+      } catch (error) {
+        console.error('Failed to fetch history:', error);
       }
     };
-    if (user) {
-      fetchHistory();
-    }
+    
+    fetchHistory();
   }, [user]);
 
   return (

@@ -140,8 +140,8 @@ server {
     client_header_buffer_size 1k;
 
     # API Routes
-    location /api {
-        proxy_pass http://127.0.0.1:8000;
+    location /api/ {
+        proxy_pass http://127.0.0.1:8000/;
         proxy_http_version 1.1;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
@@ -154,7 +154,7 @@ server {
 
     # Docs
     location /docs {
-        proxy_pass http://127.0.0.1:8000;
+        proxy_pass http://127.0.0.1:8000/docs;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;

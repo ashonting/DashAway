@@ -6,22 +6,49 @@ export default function GlobalCounter() {
   const [stats, setStats] = useState({ total_em_dashes_found: 0, total_documents_processed: 0 });
 
   useEffect(() => {
+    let isActive = true;
+    let retryCount = 0;
+    const maxRetries = 3;
+
     const fetchStats = async () => {
+      if (!isActive) return;
+      
       try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/stats/global`);
-        if (res.ok) {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+        
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/stats/global`, {
+          signal: controller.signal,
+        });
+        
+        clearTimeout(timeoutId);
+        
+        if (res.ok && isActive) {
           const data = await res.json();
           setStats(data);
+          retryCount = 0; // Reset retry count on success
         }
       } catch (error) {
-        // Handle error
+        console.error('Error fetching global stats:', error);
+        retryCount++;
+        if (retryCount >= maxRetries) {
+          console.log('Max retries reached for global stats');
+          return; // Stop retrying
+        }
       }
     };
 
     fetchStats();
-    const interval = setInterval(fetchStats, 5000); // Poll every 5 seconds
+    const interval = setInterval(() => {
+      if (isActive && retryCount < maxRetries) {
+        fetchStats();
+      }
+    }, 10000); // Poll every 10 seconds (increased from 5)
 
-    return () => clearInterval(interval);
+    return () => {
+      isActive = false;
+      clearInterval(interval);
+    };
   }, []);
 
   return (

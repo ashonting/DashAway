@@ -46,3 +46,12 @@ def hello_world():
 @app.get("/faq")
 def get_faq_root():
     return {"message": "FAQ endpoint - use /api/faq for actual FAQ data"}
+
+@app.get("/health")
+def health_check():
+    """Health check endpoint for CI/CD and monitoring"""
+    return {
+        "status": "healthy",
+        "service": "dashaway-backend",
+        "version": "1.0.0"
+    }

@@ -6,7 +6,7 @@ from ..services.segmenter import segment_text
 from ..models.stats import GlobalStats
 from ..models.history import DocumentHistory
 from ..models.subscription import Subscription
-from ..auth.auth import get_current_user, get_current_user_optional
+from ..auth.supabase_auth import get_current_user_supabase, get_current_user_optional_supabase
 from ..models.user import User
 from ..models.feedback import Feedback
 from ..models.faq import FAQ
@@ -42,7 +42,7 @@ def get_db():
         db.close()
 
 @router.post("/test-auth")
-def test_auth(http_request: Request, current_user: Optional[User] = Depends(get_current_user_optional)):
+def test_auth(http_request: Request, current_user: Optional[User] = Depends(get_current_user_optional_supabase)):
     print("DEBUG: test-auth called")
     
     # Debug information
@@ -64,10 +64,20 @@ def test_auth(http_request: Request, current_user: Optional[User] = Depends(get_
     return debug_info
 
 @router.post("/process")
-def process_text(request: TextProcessRequest, http_request: Request, response: Response, db: Session = Depends(get_db), current_user: Optional[User] = Depends(get_current_user_optional)):
+def process_text(request: TextProcessRequest, http_request: Request, response: Response, db: Session = Depends(get_db), current_user: Optional[User] = Depends(get_current_user_optional_supabase)):
     try:
-        # Check usage limits and user tier
+        # Check text length limit based on user tier
         user_tier = get_user_tier(current_user, db)
+        
+        if user_tier == "pro":
+            max_chars = 500000  # 500K for Pro users
+        else:
+            max_chars = 15000   # 15K for Free/Basic users
+            
+        if len(request.text) > max_chars:
+            raise HTTPException(status_code=400, detail=f"Text too long. Maximum {max_chars:,} characters allowed for {user_tier} users.")
+        
+        # Check usage limits
         can_use, error_message = check_usage_limits(current_user, user_tier, http_request, response)
         
         if not can_use:
@@ -110,6 +120,22 @@ def get_readability(request: TextProcessRequest):
         
         # Use cleaned text for more accurate readability calculation
         score = textstat.flesch_kincaid_grade(cleaned_text) if cleaned_text.strip() else 0.0
+        
+        # Debug information for readability calculation
+        sentences_count = textstat.sentence_count(cleaned_text)
+        words_count = textstat.lexicon_count(cleaned_text)
+        syllables_count = textstat.syllable_count(cleaned_text)
+        print(f"DEBUG - Readability calculation:")
+        print(f"  Original text length: {len(text)}")
+        print(f"  Cleaned text length: {len(cleaned_text)}")
+        print(f"  Sentences: {sentences_count}, Words: {words_count}, Syllables: {syllables_count}")
+        print(f"  FK Grade Level: {score}")
+        
+        # Manual FK calculation for verification
+        if sentences_count > 0 and words_count > 0:
+            manual_fk = 0.39 * (words_count / sentences_count) + 11.8 * (syllables_count / words_count) - 15.59
+            print(f"  Manual FK calculation: {manual_fk:.2f}")
+        print(f"  Cleaned text sample: {cleaned_text[:200]}...")
         
         # Use original text for sentence analysis (to preserve user's actual content)
         sentences = nltk.sent_tokenize(text)
@@ -193,14 +219,14 @@ def check_usage_limits(user: Optional[User], tier: str, request: Request, respon
 def save_to_history(user: User, text: str, result: dict, db: Session):
     """Save document analysis to user history"""
     try:
-        # Generate a meaningful title from the first 50 characters
-        title = text.strip()[:50] + ("..." if len(text.strip()) > 50 else "")
+        # Generate cleaned text from segments
+        cleaned_segments = result.get('segments', [])
+        cleaned_text = ''.join([seg.get('content', '') for seg in cleaned_segments])
         
         history_entry = DocumentHistory(
             user_id=user.id,
-            title=title,
-            content=text,
-            analysis_results=result
+            original_text=text,
+            cleaned_text=cleaned_text
         )
         db.add(history_entry)
         print(f"DEBUG: Saved history entry for user {user.id}")
@@ -225,7 +251,7 @@ def update_global_stats(result: dict, db: Session):
 
 
 @router.get("/history")
-def get_user_history(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+def get_user_history(db: Session = Depends(get_db), current_user: User = Depends(get_current_user_supabase)):
     """Get document history for authenticated user"""
     history = db.query(DocumentHistory).filter(
         DocumentHistory.user_id == current_user.id
@@ -234,16 +260,16 @@ def get_user_history(db: Session = Depends(get_db), current_user: User = Depends
     return [
         {
             "id": entry.id,
-            "title": entry.title,
+            "title": entry.original_text[:50] + ("..." if len(entry.original_text) > 50 else ""),  # Generate title from content
             "created_at": entry.created_at.isoformat(),
-            "content": entry.content[:200] + ("..." if len(entry.content) > 200 else "")  # Preview only
+            "content": entry.original_text[:200] + ("..." if len(entry.original_text) > 200 else "")  # Preview only
         }
         for entry in history
     ]
 
 
 @router.get("/history/{document_id}")
-def get_document_details(document_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+def get_document_details(document_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user_supabase)):
     """Get full document details including analysis results"""
     document = db.query(DocumentHistory).filter(
         DocumentHistory.id == document_id,
@@ -255,15 +281,15 @@ def get_document_details(document_id: int, db: Session = Depends(get_db), curren
     
     return {
         "id": document.id,
-        "title": document.title,
-        "content": document.content,
-        "analysis_results": document.analysis_results,
+        "title": document.original_text[:50] + ("..." if len(document.original_text) > 50 else ""),  # Generate title from content
+        "original_text": document.original_text,
+        "cleaned_text": document.cleaned_text,
         "created_at": document.created_at.isoformat()
     }
 
 
 @router.delete("/history/{document_id}")
-def delete_document(document_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+def delete_document(document_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user_supabase)):
     """Delete a document from history"""
     document = db.query(DocumentHistory).filter(
         DocumentHistory.id == document_id,

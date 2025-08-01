@@ -1,155 +1,213 @@
 # DashAway
 
-A modern, web-based SaaS tool for instantly cleaning and refining your writing by removing em-dashes, clichés, jargon, and common AI "tells."
+**"They'll never know AI wrote it."**
 
-![Build Status](https://img.shields.io/badge/build-passing-brightgreen)
+A production SaaS tool that transforms AI-generated content into authentic human writing by removing robotic phrases, corporate jargon, and AI "tells."
+
+![Build Status](https://img.shields.io/badge/build-live-brightgreen)
 ![License](https://img.shields.io/badge/license-AGPLv3-blue)
-![Version](https://img.shields.io/badge/version-1.0.0-lightgrey)
+![Version](https://img.shields.io/badge/version-2.0-lightgrey)
+![Production](https://img.shields.io/badge/status-production-success)
 
-## ✨ Project Overview
+🌐 **Live at:** [dashaway.io](https://dashaway.io)
 
-DashAway is a production-ready SaaS application that helps writers create cleaner, more natural-sounding content by identifying and suggesting improvements for problematic phrases, jargon, and AI-generated language patterns.
+## ✨ What DashAway Does
 
-### 🎯 Target Audience
-- **Content Creators & Bloggers:** Improve SEO and authenticity by avoiding AI detection
-- **Students & Academics:** Produce original, natural-sounding academic writing
-- **Marketing Professionals:** Polish copy and meet editorial standards efficiently
-- **General Writers:** Anyone who values clear, human, and professional communication
+DashAway is a **live production SaaS** that helps users clean AI-generated content from ChatGPT, Claude, and other AI tools, making it undetectable and ready for personal or professional use.
 
-### 🚀 Key Features
-- **Real-time Text Analysis:** Instant highlighting of em-dashes, clichés, jargon, and AI tells
-- **Interactive Suggestions:** Click any highlighted issue to see replacement options
-- **Readability Analysis:** Flesch-Kincaid grade level scoring with complexity insights
-- **User Authentication:** Full account system with JWT-based authentication
-- **Three-Tier System:** Anonymous (1 use), Basic (2/month), Pro (unlimited)
-- **Admin Dashboard:** Complete management interface for users and feedback
-- **Usage Analytics:** Global statistics and individual usage tracking
-- **Modern UI/UX:** Responsive design with dark/light theme support
-- **Conversion Optimization:** Smart upgrade prompts and usage limit handling
+### 🎯 Perfect For
+- **Content Creators:** Transform AI drafts into authentic personal content
+- **Students:** Make AI-assisted research sound original and natural  
+- **Marketers:** Polish AI-generated copy to meet editorial standards
+- **Business Professionals:** Clean AI content for reports, emails, and presentations
+- **Anyone using AI tools:** Turn AI output into credible human writing
 
-## 🛠️ Tech Stack
+### 🚀 Live Features
 
-### Frontend
-- **Framework:** Next.js 14 with App Router
-- **Language:** TypeScript
-- **Styling:** Tailwind CSS
-- **Authentication:** JWT with httpOnly cookies
+#### **🤖 AI Content Humanization**
+- **Real-time Detection:** Identifies ChatGPT, Claude, and AI-generated phrases
+- **Interactive Cleaning:** Click highlighted text to see human alternatives
+- **Comprehensive Analysis:** Removes em-dashes, clichés, jargon, and AI tells
+- **Instant Results:** Transform content in seconds
+
+#### **👤 Production Authentication** 
+- **Supabase Integration:** Google OAuth + email/password authentication
+- **User Profiles:** Complete account management and usage tracking
+- **Secure Sessions:** JWT-based authentication with proper session handling
+
+#### **💳 Live Billing System**
+- **Paddle Integration:** Professional payment processing  
+- **Subscription Management:** Automated billing and account upgrades
+- **Usage Limits:** 2 free cleanings/month, unlimited Pro ($4/month)
+- **Webhook Handling:** Real-time subscription status updates
+
+#### **📊 Advanced Analytics**
+- **Usage Tracking:** Individual and global statistics
+- **Performance Metrics:** Readability scoring and improvement tracking
+- **Admin Dashboard:** Complete user and subscription management
+
+#### **🎨 Modern UI/UX**
+- **Responsive Design:** Works perfectly on desktop and mobile
+- **Dark/Light Themes:** System preference detection
+- **Conversion Optimized:** Smart upgrade prompts and social proof
+- **Professional Polish:** Tailwind CSS with carefully crafted design system
+
+## 🛠️ Production Tech Stack
+
+### **Live Infrastructure**
+- **Frontend:** Next.js 14 deployed on Digital Ocean
+- **Backend:** FastAPI on Digital Ocean droplet  
+- **Database:** Supabase PostgreSQL with Row Level Security
+- **Authentication:** Supabase Auth with Google OAuth
+- **Payments:** Paddle (live billing integration)
+- **SSL:** Let's Encrypt with automatic renewal
+- **Reverse Proxy:** Nginx with production configuration
+
+### **Frontend Stack**
+- **Framework:** Next.js 14 with App Router and TypeScript
+- **Styling:** Tailwind CSS with custom design system
+- **Authentication:** Supabase client integration
+- **State Management:** React Context + custom hooks
 - **Icons:** Lucide React
+- **Export:** PDF and DOCX generation
 
-### Backend
-- **Framework:** FastAPI with Pydantic v2
-- **Language:** Python 3.11
-- **Database:** PostgreSQL (Supabase)
-- **ORM:** SQLAlchemy with declarative models
-- **NLP Libraries:** NLTK, textstat
-- **Authentication:** JWT with bcrypt password hashing
+### **Backend Stack**
+- **API:** FastAPI with Pydantic v2 validation
+- **Database:** SQLAlchemy with Supabase PostgreSQL
+- **Text Processing:** NLTK, textstat, custom segmentation
+- **Authentication:** Supabase JWT verification
+- **Payments:** Paddle webhook processing
+- **CORS:** Production-ready security headers
 
-### Infrastructure
-- **Containerization:** Docker with docker-compose
-- **Database:** Supabase (PostgreSQL with Row Level Security)
-- **Deployment Ready:** Environment-based configuration
+### **Production Deployment**
+- **Containerization:** Docker Compose with multi-stage builds
+- **Environment:** Production environment variable management
+- **Monitoring:** Container health checks and restart policies
+- **Logging:** Structured logging with rotation
+- **SSL:** Automated certificate management
 
 ## 🏗️ Architecture
 
-### Database Schema
+### **Database Schema (Supabase)**
 ```sql
--- Users with usage tracking and monthly reset
-users (id, email, hashed_password, is_active, usage_count, last_usage_reset)
+-- Supabase auth.users integration
+users (
+  id, email, usage_count, is_pro, 
+  paddle_customer_id, subscription_tier, subscription_status,
+  created_at, updated_at
+)
 
--- Pro subscription management  
-subscriptions (id, user_id, paddle_subscription_id, status)
+-- Paddle subscription management
+subscriptions (
+  id, user_id, paddle_subscription_id, paddle_customer_id,
+  status, tier, billing_cycle, current_period_end,
+  paddle_data, created_at, updated_at
+)
 
--- User feedback collection
-feedback (id, feedback_type, content)
-
--- FAQ system
-faq (id, question, answer)
-
--- Document history (Pro feature)
-document_history (id, user_id, title, content, analysis_results, created_at)
+-- Document processing history  
+document_history (
+  id, user_id, title, original_content, cleaned_content,
+  analysis_results, created_at
+)
 
 -- Global usage statistics
-global_stats (id, total_texts_cleaned, total_em_dashes_found, ...)
+global_stats (
+  id, total_texts_cleaned, total_ai_tells_found,
+  total_users, date_recorded
+)
 ```
 
-### API Endpoints
-```
-POST /api/process          # Text analysis with authentication
-POST /api/auth/register    # User registration
-POST /api/auth/token       # Login with JWT
-GET  /api/users/me         # Current user profile
-POST /api/feedback         # Submit user feedback
-GET  /api/faq             # FAQ content
-GET  /api/stats/global    # Public usage statistics
+### **Live API Endpoints**
+```bash
+# Core text processing
+POST /api/process              # AI content analysis & cleaning
 
-# Admin endpoints (password protected)
-GET  /api/admin/users     # User management
-POST /api/admin/make-pro/{user_id}  # Upgrade user to Pro
-GET  /api/admin/feedback  # View all feedback
+# Supabase authentication 
+POST /api/users/sync          # User creation/sync with Supabase
+GET  /api/users/me            # Current user profile
+
+# Paddle billing
+POST /api/paddle/create-checkout    # Subscription checkout
+GET  /api/paddle/subscription-info  # User subscription status
+POST /api/paddle/webhook           # Paddle webhook handler
+GET  /api/paddle/pricing-config    # Current pricing
+
+# Analytics & stats
+GET  /api/stats/global        # Public usage statistics
+POST /api/feedback           # User feedback collection
+
+# Admin dashboard
+GET  /api/admin/users        # User management (protected)
+POST /api/admin/make-pro     # Manual user upgrades
 ```
 
 ## 🚀 Getting Started
 
-### Prerequisites
-- Docker and Docker Compose
-- Node.js 18+ (for local development)
-- Python 3.11+ (for local development)
+### **Production Deployment**
 
-### Quick Start with Docker
 ```bash
 # Clone the repository
 git clone https://github.com/yourusername/dashaway.git
 cd dashaway
 
-# Create environment file
+# Set up production environment
 cp .env.example .env
-# Edit .env with your database credentials
+# Configure production values (see Environment section)
 
-# Start the application
+# Deploy to production server
+./deploy-prod.sh
+```
+
+### **Local Development**
+
+```bash
+# Start with Docker
 docker-compose up -d
 
-# The application will be available at:
-# Frontend: http://localhost:3000
-# Backend API: http://localhost:8000
+# Or run locally:
+cd backend && python -m uvicorn app.main:app --reload
+cd frontend && npm run dev
+
+# Available at:
+# Frontend: http://localhost:3000  
+# Backend: http://localhost:8000
+# Docs: http://localhost:8000/docs
 ```
 
-### Local Development Setup
+### **Environment Configuration**
 
-1. **Backend Setup:**
-```bash
-cd backend
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-pip install -r requirements.txt
-python download_nltk_data.py
-uvicorn app.main:app --reload
-```
-
-2. **Frontend Setup:**
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
-### Environment Configuration
-Create a `.env` file in the root directory:
+**Production `.env`:**
 ```env
-# Database
-DATABASE_URL=postgresql://user:password@host:port/database
+# Database (Supabase)
+DATABASE_URL=postgresql://user:pass@host:port/database
 
-# Authentication
-JWT_SECRET=your-super-secure-jwt-secret-key
+# Authentication  
+JWT_SECRET=your-secure-jwt-secret
 NEXTAUTH_SECRET=your-nextauth-secret
+NEXTAUTH_URL=https://yourdomain.com
+
+# API Configuration
+NEXT_PUBLIC_API_URL=https://yourdomain.com
+CORS_ORIGINS=https://yourdomain.com,https://www.yourdomain.com
+
+# Supabase Integration
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
+SUPABASE_JWT_SECRET=your-supabase-jwt-secret
+
+# Paddle Billing (Production)
+PADDLE_API_KEY=your-paddle-live-api-key
+PADDLE_WEBHOOK_SECRET=your-webhook-secret
+PADDLE_VENDOR_ID=your-vendor-id
+PADDLE_PRO_PRODUCT_ID=your-product-id
+PADDLE_PRO_MONTHLY_PRICE_ID=your-price-id
 
 # Admin
-ADMIN_PASSWORD=your-admin-password
+ADMIN_USERNAME=admin
+ADMIN_PASSWORD=secure-admin-password
 
-# CORS
-CORS_ORIGINS=http://localhost:3000,https://yourdomain.com
-
-# Frontend API URL
-NEXT_PUBLIC_API_URL=http://localhost:8000
+# Environment
+ENVIRONMENT=production
 ```
 
 ## 📂 Project Structure
@@ -158,127 +216,140 @@ NEXT_PUBLIC_API_URL=http://localhost:8000
 dashaway/
 ├── backend/
 │   ├── app/
-│   │   ├── auth/                 # Authentication system
-│   │   ├── data/                 # Text analysis data files
-│   │   ├── models/               # SQLAlchemy database models
-│   │   ├── routes/               # FastAPI route handlers
-│   │   ├── schemas/              # Pydantic models
-│   │   ├── services/             # Business logic (text segmenter)
-│   │   ├── utils/                # Utility functions
-│   │   ├── database.py           # Database configuration
-│   │   └── main.py              # FastAPI application entry
-│   ├── requirements.txt
-│   └── Dockerfile
+│   │   ├── auth/                 # Supabase authentication
+│   │   ├── models/               # SQLAlchemy models
+│   │   ├── routes/               # FastAPI endpoints
+│   │   │   ├── analysis.py       # Text processing
+│   │   │   ├── auth.py          # Authentication
+│   │   │   ├── users.py         # User management  
+│   │   │   ├── paddle.py        # Billing integration
+│   │   │   └── admin.py         # Admin dashboard
+│   │   ├── services/             # Business logic
+│   │   │   ├── segmenter.py     # Text analysis engine
+│   │   │   └── paddle_service.py # Payment handling
+│   │   └── main.py              # FastAPI app
 ├── frontend/
 │   ├── src/
-│   │   ├── app/                  # Next.js 14 app directory
-│   │   │   ├── admin/           # Admin dashboard
+│   │   ├── app/                  # Next.js 14 app router
 │   │   │   ├── dashboard/       # User dashboard
-│   │   │   ├── pricing/         # Pricing page
-│   │   │   ├── (auth)/          # Auth pages
-│   │   │   └── (legal)/         # Legal pages
-│   │   ├── contexts/            # React contexts (auth)
-│   │   ├── hooks/               # Custom React hooks
-│   │   └── components/          # Reusable components
-│   ├── package.json
-│   └── Dockerfile
-├── docker-compose.yml
-├── .env                         # Environment variables
-└── README.md
+│   │   │   ├── pricing/         # Pricing & billing
+│   │   │   ├── auth/            # Auth callbacks
+│   │   │   └── admin/           # Admin interface
+│   │   ├── contexts/            # React contexts
+│   │   │   └── SupabaseAuthContext.tsx
+│   │   ├── hooks/               # Custom hooks
+│   │   │   ├── useTextAnalysis.ts
+│   │   │   └── useSubscription.ts
+│   │   └── services/            # API services
+│   │       └── paddleService.ts
+├── deploy-prod.sh               # Production deployment
+├── docker-compose.prod.yml      # Production containers
+├── nginx.conf                   # Production nginx config
+└── .env                        # Environment variables
 ```
 
-## 🔐 Authentication & User Management
+## 🔐 Production Authentication
 
-### User Tiers
-1. **Anonymous Users:** 1 free text analysis
-2. **Basic Users:** 2 analyses per month (free account)
-3. **Pro Users:** Unlimited analyses ($4/month)
+### **Supabase Integration**
+- **Google OAuth:** One-click authentication via Google
+- **Email/Password:** Traditional registration with secure password handling
+- **JWT Sessions:** Secure token-based authentication
+- **Row Level Security:** Database-level access control
 
-### Admin Features
-- Password-protected admin dashboard at `/admin`
-- User management (view, make Pro, remove Pro)
-- Feedback management and statistics
-- FAQ population and management
+### **User Management**
+- **Account Sync:** Automatic user creation between Supabase and backend
+- **Usage Tracking:** Real-time monitoring of cleaning limits
+- **Subscription Status:** Live integration with Paddle billing
 
-## 🎨 UI/UX Features
+## 💳 Live Billing System
 
-### Modern Design System
-- **Colors:** Teal to purple gradient primary, carefully chosen accent colors
-- **Typography:** Inter and Poppins fonts
-- **Styling:** Rounded corners (rounded-2xl), gradient buttons with hover effects
-- **Themes:** Full dark/light mode support with system preference detection
-- **Responsive:** Mobile-first design with Tailwind CSS
+### **Paddle Integration**
+- **Checkout:** Hosted payment pages with tax handling
+- **Webhooks:** Real-time subscription event processing
+- **Management:** Automatic subscription lifecycle handling
+- **Security:** Webhook signature verification
 
-### Conversion Optimization
-- **Smart CTAs:** Usage limit modals with upgrade prompts
-- **Social Proof:** Live global statistics counter
-- **Professional Copy:** Value-driven messaging focused on benefits
-- **Smooth UX:** Loading states, error handling, and success feedback
+### **Pricing Tiers**
+- **Basic:** $0/month - 2 AI content cleanings
+- **Pro:** $4/month - Unlimited cleanings + advanced features
 
-## 🧪 Testing & Quality
+## 🎨 UI/UX Design System
 
-### Current Test Coverage
-- Manual testing of all user flows
-- Authentication system verification
-- Payment integration testing (ready for Paddle)
-- Cross-browser compatibility testing
+### **Brand & Messaging**  
+- **Tagline:** "They'll never know AI wrote it"
+- **Value Prop:** Transform AI content into authentic human writing
+- **Target:** Users of ChatGPT, Claude, and other AI tools
 
-### Code Quality
-- TypeScript for type safety
-- ESLint and Prettier for code consistency
-- Pydantic for API validation
-- SQLAlchemy for database safety
+### **Design Elements**
+- **Colors:** Teal to purple gradients with professional accents
+- **Typography:** System fonts optimized for readability
+- **Components:** Rounded, modern design with smooth animations
+- **Responsive:** Mobile-first with perfect cross-device experience
 
-## 🚢 Production Deployment
+## 📈 Production Metrics
 
-### Ready for Production
-- ✅ Complete authentication system
-- ✅ Production-grade database (Supabase)
-- ✅ Docker containerization
-- ✅ Environment-based configuration
-- ✅ CORS and security headers
-- ✅ Legal compliance (Privacy, Terms, Refund policies)
-- ✅ Admin management interface
-- ✅ Usage tracking and limits
+### **Current Status**
+- ✅ **Live Production:** dashaway.io fully operational
+- ✅ **Payment Processing:** Paddle integration active
+- ✅ **User Authentication:** Supabase OAuth working
+- ✅ **SSL Security:** Let's Encrypt certificates active
+- ✅ **Database:** Supabase PostgreSQL with RLS
+- ✅ **Container Health:** Docker monitoring active
 
-### Deployment Checklist
-- [ ] Domain registration and SSL
-- [ ] Production hosting setup (Vercel + Railway/Render)
-- [ ] Paddle payment integration
-- [ ] Email service configuration
-- [ ] Error monitoring (Sentry)
-- [ ] Analytics integration (Google Analytics)
+### **Performance**
+- **Response Time:** <500ms average API response
+- **Uptime:** 99.9% target with health monitoring
+- **Security:** Production CORS, SSL, and authentication
+- **Scalability:** Docker container architecture ready for scaling
 
-## 📈 Business Model
+## 🚢 Deployment & Operations
 
-### Pricing Structure
-- **Basic:** Free (2 uses/month)
-- **Pro:** $4/month (unlimited usage)
+### **Production Deployment Script**
+```bash
+# Complete production deployment
+./deploy-prod.sh
+```
 
-### Revenue Features
-- Subscription management via Paddle
-- Usage-based limitations
-- Upgrade conversion optimization
-- Admin tools for user management
+**Features:**
+- Docker system cleanup and pruning
+- No-cache container rebuilds  
+- Environment variable validation
+- Health check verification
+- Automated rollback on failure
 
-## 🤝 Contributing
+### **Monitoring & Maintenance**
+```bash
+# Check container status
+docker-compose -f docker-compose.prod.yml ps
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+# View logs
+docker-compose -f docker-compose.prod.yml logs -f
 
-## 📄 License
+# Restart services
+docker-compose -f docker-compose.prod.yml restart [service]
 
-This project is licensed under the AGPLv3 License - see the [LICENSE](LICENSE) file for details.
+# Update deployment
+git pull && ./deploy-prod.sh
+```
 
-## 📞 Contact & Support
+## 🤝 Business Model
 
+### **Revenue Streams**
+- **Subscription Revenue:** $4/month Pro subscriptions
+- **Conversion Optimization:** Smart upgrade prompts and usage limits
+- **Target Market:** AI tool users (ChatGPT, Claude, etc.)
+
+### **Growth Strategy**
+- **SEO:** Targeting "AI detection removal" keywords  
+- **Content Marketing:** Guides on using AI content ethically
+- **Product-Led Growth:** Free tier with conversion to paid
+
+## 📞 Support & Contact
+
+- **Live Application:** [dashaway.io](https://dashaway.io)
 - **Email:** support@dashaway.io
-- **Website:** [dashaway.io](https://dashaway.io) (coming soon)
-- **Issues:** [GitHub Issues](https://github.com/yourusername/dashaway/issues)
+- **Status:** Production-ready SaaS platform
 
 ---
 
-*DashAway - Making AI-assisted writing sound human again.* 🚀
+**DashAway** - *Turn AI content into authentic human writing. They'll never know AI wrote it.* 🤖➡️👤

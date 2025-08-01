@@ -12,6 +12,11 @@ class User(Base):
     is_active = Column(Boolean, default=True)
     usage_count = Column(Integer, default=2)  # Basic users start with 2 uses
     last_usage_reset = Column(DateTime, default=datetime.utcnow)  # Track monthly reset
+    paddle_customer_id = Column(String, nullable=True, index=True)  # Paddle customer ID
+    subscription_tier = Column(String, default="free")  # free, pro, premium
+    subscription_status = Column(String, default="inactive")  # active, cancelled, past_due, etc.
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
-    # subscriptions = relationship("Subscription", back_populates="user")
+    subscriptions = relationship("Subscription", back_populates="user")
     # history = relationship("DocumentHistory", back_populates="user")

@@ -1,0 +1,192 @@
+"""
+Pytest configuration and shared fixtures for DashAway testing.
+
+This file contains all the shared test fixtures that can be used
+across multiple test files. Fixtures are reusable test setup code.
+"""
+
+import os
+import pytest
+import asyncio
+from fastapi.testclient import TestClient
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.pool import StaticPool
+
+# Import your app components
+from app.main import app
+from app.database import Base, get_db
+from app.models.user import User
+from app.models.subscription import Subscription
+from app.models.history import DocumentHistory
+from app.models.stats import GlobalStats
+
+# Test database configuration
+SQLALCHEMY_DATABASE_URL = "sqlite:///./test.db"
+
+# Create test database engine
+engine = create_engine(
+    SQLALCHEMY_DATABASE_URL,
+    connect_args={"check_same_thread": False},
+    poolclass=StaticPool,
+)
+TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+
+@pytest.fixture(scope="session")
+def test_db():
+    """Create test database tables for the entire test session."""
+    Base.metadata.create_all(bind=engine)
+    yield
+    Base.metadata.drop_all(bind=engine)
+
+
+@pytest.fixture
+def db_session(test_db):
+    """Create a fresh database session for each test."""
+    connection = engine.connect()
+    transaction = connection.begin()
+    session = TestingSessionLocal(bind=connection)
+    
+    yield session
+    
+    session.close()
+    transaction.rollback()
+    connection.close()
+
+
+def override_get_db(db_session):
+    """Override the database dependency for testing."""
+    def _override():
+        try:
+            yield db_session
+        finally:
+            pass
+    return _override
+
+
+@pytest.fixture
+def client(db_session):
+    """Create a test client with database override."""
+    app.dependency_overrides[get_db] = override_get_db(db_session)
+    
+    with TestClient(app) as test_client:
+        yield test_client
+    
+    app.dependency_overrides.clear()
+
+
+# Sample test data fixtures
+@pytest.fixture
+def sample_user_data():
+    """Sample user data for testing."""
+    return {
+        "email": "test@example.com",
+        "hashed_password": "hashed_password_here",
+        "is_active": True,
+        "usage_count": 2,
+        "subscription_tier": "basic",
+        "subscription_status": "active"
+    }
+
+
+@pytest.fixture
+def sample_user(db_session, sample_user_data):
+    """Create a sample user in the test database."""
+    user = User(**sample_user_data)
+    db_session.add(user)
+    db_session.commit()
+    db_session.refresh(user)
+    return user
+
+
+@pytest.fixture
+def sample_pro_user(db_session):
+    """Create a sample pro user with active subscription."""
+    user = User(
+        email="pro@example.com",
+        hashed_password="hashed_password_here",
+        is_active=True,
+        usage_count=999,  # Pro users have unlimited
+        subscription_tier="pro",
+        subscription_status="active"
+    )
+    db_session.add(user)
+    db_session.commit()
+    db_session.refresh(user)
+    return user
+
+
+@pytest.fixture
+def sample_subscription(db_session, sample_pro_user):
+    """Create a sample active subscription."""
+    subscription = Subscription(
+        user_id=sample_pro_user.id,
+        paddle_subscription_id="sub_123456",
+        paddle_customer_id="cus_123456",
+        status="active",
+        tier="pro",
+        billing_cycle="monthly",
+        unit_price=4.00,
+        currency="USD"
+    )
+    db_session.add(subscription)
+    db_session.commit()
+    db_session.refresh(subscription)
+    return subscription
+
+
+@pytest.fixture
+def sample_text_analysis():
+    """Sample text for analysis testing."""
+    return {
+        "input_text": "This is a test text—with an em dash and some buzzwords like leverage and synergy.",
+        "expected_segments": [
+            {"type": "text", "content": "This is a test text"},
+            {"type": "em_dash", "content": "—"},
+            {"type": "text", "content": "with an em dash and some buzzwords like "},
+            {"type": "jargon", "content": "leverage"},
+            {"type": "text", "content": " and "},
+            {"type": "jargon", "content": "synergy"},
+            {"type": "text", "content": "."}
+        ]
+    }
+
+
+@pytest.fixture
+def auth_headers():
+    """Sample authentication headers for API testing."""
+    return {
+        "Authorization": "Bearer fake_jwt_token_for_testing",
+        "Content-Type": "application/json"
+    }
+
+
+@pytest.fixture
+def mock_supabase_user():
+    """Mock Supabase user data for authentication testing."""
+    return {
+        "id": "12345678-1234-1234-1234-123456789012",
+        "email": "test@example.com",
+        "email_confirmed_at": "2023-01-01T00:00:00.000000Z",
+        "created_at": "2023-01-01T00:00:00.000000Z"
+    }
+
+
+# Environment setup
+@pytest.fixture(autouse=True)
+def setup_test_environment():
+    """Set up test environment variables."""
+    os.environ["TESTING"] = "true"
+    os.environ["DATABASE_URL"] = SQLALCHEMY_DATABASE_URL
+    yield
+    # Cleanup if needed
+
+
+# Async testing support
+@pytest.fixture(scope="session")
+def event_loop():
+    """Create an instance of the default event loop for the test session."""
+    loop = asyncio.get_event_loop_policy().new_event_loop()
+    yield loop
+    loop.close()

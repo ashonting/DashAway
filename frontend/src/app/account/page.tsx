@@ -1,12 +1,12 @@
 'use client';
 
-import { useAuth } from '@/contexts/AuthContext';
+import { useSupabaseAuth } from '@/contexts/SupabaseAuthContext';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import Toast from '@/app/Toast';
 
 export default function AccountPage() {
-  const { user, loading } = useAuth();
+  const { user, loading } = useSupabaseAuth();
   const router = useRouter();
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');

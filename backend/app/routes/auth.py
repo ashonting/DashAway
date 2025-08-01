@@ -49,7 +49,7 @@ def logout(response: Response):
     return {"message": "Logout successful"}
 
 @router.post("/google")
-def google_login(token: dict, db: Session = Depends(get_db)):
+def google_login(token: dict, response: Response, db: Session = Depends(get_db)):
     try:
         # You need to install the google-auth library for this to work
         from google.oauth2 import id_token
@@ -69,9 +69,8 @@ def google_login(token: dict, db: Session = Depends(get_db)):
             db.refresh(user)
 
         access_token = auth.create_access_token(data={"sub": user.email})
-        response = Response()
         response.set_cookie(key="access_token", value=f"Bearer {access_token}", httponly=True)
-        return response
+        return {"access_token": access_token, "token_type": "bearer", "user_email": user.email}
 
     except ValueError:
         # Invalid token

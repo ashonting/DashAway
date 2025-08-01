@@ -1,6 +1,6 @@
 'use client';
 
-import { useAuth } from '@/contexts/AuthContext';
+import { useSupabaseAuth } from '@/contexts/SupabaseAuthContext';
 import { X, Crown, Zap, CheckCircle } from 'lucide-react';
 import Link from 'next/link';
 
@@ -11,7 +11,7 @@ interface UpgradeModalProps {
 }
 
 export default function UpgradeModal({ isOpen, onClose, isAnonymous = true }: UpgradeModalProps) {
-  const { user } = useAuth();
+  const { user } = useSupabaseAuth();
 
   if (!isOpen) return null;
 

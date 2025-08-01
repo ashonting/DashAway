@@ -12,9 +12,16 @@ services:
     restart: unless-stopped
     
   frontend:
-    build: ./frontend
+    build: 
+      context: ./frontend
+      args:
+        NEXT_PUBLIC_API_URL: http://localhost:8000
+        NEXT_PUBLIC_SUPABASE_URL: https://vsjxnobjkkesyszhpweu.supabase.co
+        NEXT_PUBLIC_SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZzanhub2Jqa2tlc3lzemhwd2V1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE5MTQ5NTYsImV4cCI6MjA2NzQ5MDk1Nn0.rI6apcTIj_1V6Fo9z3asTBd5Owv5fVWqakW2rgc8GvQ
     ports:
       - "3000:3000"
+    env_file:
+      - .env
     environment:
       - NEXT_PUBLIC_API_URL=http://localhost:8000
     depends_on:

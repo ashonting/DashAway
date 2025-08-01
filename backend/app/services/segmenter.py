@@ -34,6 +34,15 @@ def clean_text_for_readability(text: str) -> str:
     # Remove URLs
     text = re.sub(r'https?://\S+', '', text)
     
+    # Remove HTML-like headers and formatting that break sentence detection
+    text = re.sub(r'H[1-6]:\s*', '', text)  # Remove H1:, H2:, etc.
+    text = re.sub(r'<[^>]+>', '', text)  # Remove any HTML tags
+    text = re.sub(r'\*\*([^*]+)\*\*', r'\1', text)  # Remove markdown bold **text**
+    text = re.sub(r'\*([^*]+)\*', r'\1', text)  # Remove markdown italic *text*
+    
+    # Convert colons followed by capital letters to periods (likely heading breaks)
+    text = re.sub(r':\s+([A-Z])', r'. \1', text)
+    
     # Remove emojis (Unicode emoji ranges)
     emoji_pattern = re.compile(
         "["
@@ -82,6 +91,22 @@ def segment_text(text: str):
         cleaned_text = clean_text_for_readability(text)
         if len(cleaned_text.strip()) > 0:
             readability_score = textstat.flesch_kincaid_grade(cleaned_text)
+            
+            # Debug information for readability calculation
+            sentences_count = textstat.sentence_count(cleaned_text)
+            words_count = textstat.lexicon_count(cleaned_text)
+            syllables_count = textstat.syllable_count(cleaned_text)
+            print(f"DEBUG - Segmenter Readability:")
+            print(f"  Original text length: {len(text)}")
+            print(f"  Cleaned text length: {len(cleaned_text)}")
+            print(f"  Sentences: {sentences_count}, Words: {words_count}, Syllables: {syllables_count}")
+            print(f"  FK Grade Level: {readability_score}")
+            
+            # Manual FK calculation for verification
+            if sentences_count > 0 and words_count > 0:
+                manual_fk = 0.39 * (words_count / sentences_count) + 11.8 * (syllables_count / words_count) - 15.59
+                print(f"  Manual FK calculation: {manual_fk:.2f}")
+            print(f"  Cleaned text sample: {cleaned_text[:200]}...")
         else:
             readability_score = 0.0
     except Exception as e:

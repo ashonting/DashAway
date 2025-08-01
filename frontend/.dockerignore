@@ -12,3 +12,9 @@ build/
 # Git-specific ignores
 .git
 .gitignore
+
+# Environment files (only use build args in production)
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
