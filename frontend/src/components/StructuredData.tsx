@@ -1,5 +1,6 @@
 'use client';
 
+import React from 'react';
 import { siteMetadata } from '@/lib/metadata';
 
 interface StructuredDataProps {
@@ -10,7 +11,7 @@ interface StructuredDataProps {
 export default function StructuredData({ type, data = {} }: StructuredDataProps) {
   const getStructuredData = () => {
     const baseData = {
-      '@context': 'https://schema.org',
+      "@context": "https://schema.org",
       url: siteMetadata.url,
       name: siteMetadata.siteName,
       description: siteMetadata.description,
@@ -19,29 +20,27 @@ export default function StructuredData({ type, data = {} }: StructuredDataProps)
     switch (type) {
       case 'website':
         return {
-          '@context': 'https://schema.org',
-          '@type': 'WebSite',
           ...baseData,
-          url: siteMetadata.url,
+          "@type": "WebSite",
           potentialAction: {
-            '@type': 'SearchAction',
+            "@type": "SearchAction",
             target: {
-              '@type': 'EntryPoint',
+              "@type": "EntryPoint",
               urlTemplate: `${siteMetadata.url}/search?q={search_term_string}`
             },
-            'query-input': 'required name=search_term_string'
+            "query-input": "required name=search_term_string"
           }
         };
 
       case 'organization':
         return {
-          '@context': 'https://schema.org',
-          '@type': 'Organization',
+          ...baseData,
+          "@type": "Organization",
           name: siteMetadata.siteName,
           url: siteMetadata.url,
           description: siteMetadata.description,
           logo: {
-            '@type': 'ImageObject',
+            "@type": 'ImageObject',
             url: `${siteMetadata.url}/logo.png`,
             width: 512,
             height: 512
@@ -50,7 +49,7 @@ export default function StructuredData({ type, data = {} }: StructuredDataProps)
             // Add social media URLs when available
           ],
           contactPoint: {
-            '@type': 'ContactPoint',
+            "@type": 'ContactPoint',
             contactType: 'customer service',
             url: `${siteMetadata.url}/contact`
           }
@@ -58,22 +57,22 @@ export default function StructuredData({ type, data = {} }: StructuredDataProps)
 
       case 'product':
         return {
-          '@context': 'https://schema.org',
-          '@type': 'SoftwareApplication',
+          ...baseData,
+          "@type": 'SoftwareApplication',
           name: 'DashAway AI Content Humanizer',
           description: 'AI content humanization tool that removes AI tells and transforms AI-generated text into natural, human writing.',
           url: siteMetadata.url,
           applicationCategory: 'BusinessApplication',
           operatingSystem: 'Web Browser',
           offers: {
-            '@type': 'Offer',
+            "@type": 'Offer',
             price: '0',
             priceCurrency: 'USD',
             description: 'Free tier available with Pro subscription options',
             availability: 'https://schema.org/InStock'
           },
           aggregateRating: {
-            '@type': 'AggregateRating',
+            "@type": 'AggregateRating',
             ratingValue: '4.8',
             ratingCount: '150',
             bestRating: '5',
@@ -91,42 +90,42 @@ export default function StructuredData({ type, data = {} }: StructuredDataProps)
 
       case 'article':
         return {
-          '@context': 'https://schema.org',
-          '@type': 'Article',
+          ...baseData,
+          "@type": 'Article',
           headline: data.title || siteMetadata.title,
           description: data.description || siteMetadata.description,
           url: data.url || siteMetadata.url,
           datePublished: data.datePublished || new Date().toISOString(),
           dateModified: data.dateModified || new Date().toISOString(),
           author: {
-            '@type': 'Organization',
+            "@type": 'Organization',
             name: siteMetadata.siteName,
             url: siteMetadata.url
           },
           publisher: {
-            '@type': 'Organization',
+            "@type": 'Organization',
             name: siteMetadata.siteName,
             url: siteMetadata.url,
             logo: {
-              '@type': 'ImageObject',
+              "@type": 'ImageObject',
               url: `${siteMetadata.url}/logo.png`
             }
           },
           mainEntityOfPage: {
-            '@type': 'WebPage',
-            '@id': data.url || siteMetadata.url
+            "@type": 'WebPage',
+            "@id": data.url || siteMetadata.url
           }
         };
 
       case 'faq':
         return {
-          '@context': 'https://schema.org',
-          '@type': 'FAQPage',
+          ...baseData,
+          "@type": 'FAQPage',
           mainEntity: data.questions?.map((q: any) => ({
-            '@type': 'Question',
+            "@type": 'Question',
             name: q.question,
             acceptedAnswer: {
-              '@type': 'Answer',
+              "@type": 'Answer',
               text: q.answer
             }
           })) || []
@@ -160,11 +159,9 @@ export const withArticleStructuredData = (
   articleData: any
 ) => {
   return function ArticleWithStructuredData(props: any) {
-    return (
-      <>
-        <StructuredData type="article" data={articleData} />
-        <Component {...props} />
-      </>
+    return React.createElement(React.Fragment, null, 
+      React.createElement(StructuredData, { type: "article", data: articleData }),
+      React.createElement(Component, props)
     );
   };
 };
