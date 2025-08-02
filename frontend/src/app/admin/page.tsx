@@ -19,6 +19,8 @@ interface Analytics {
     total: number;
     active: number;
     pro: number;
+    pro_paying: number;
+    pro_non_paying: number;
     free: number;
     recent_signups: number;
   };
@@ -306,7 +308,9 @@ export default function AdminPage() {
                 <div>
                   <p className="text-2xl font-bold text-foreground">{analytics.users.total}</p>
                   <p className="text-sm text-foreground/60">Total Users</p>
-                  <p className="text-xs text-foreground/40">{analytics.users.pro} Pro • {analytics.users.free} Free</p>
+                  <p className="text-xs text-foreground/40">
+                    {analytics.users.pro_paying} Pro (paying) • {analytics.users.pro_non_paying} Pro (free) • {analytics.users.free} Free
+                  </p>
                 </div>
               </div>
             </div>
