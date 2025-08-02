@@ -552,7 +552,7 @@ export default function AdminPage() {
         </div>
 
         {/* Top Users Section */}
-        {analytics && analytics.usage.top_users.length > 0 && (
+        {analytics && analytics.usage && analytics.usage.top_users && analytics.usage.top_users.length > 0 && (
           <div className="bg-card rounded-2xl border border-border/40 overflow-hidden mb-8">
             <div className="p-6 border-b border-border/40">
               <h2 className="text-2xl font-bold text-foreground">Top Users by Usage</h2>
