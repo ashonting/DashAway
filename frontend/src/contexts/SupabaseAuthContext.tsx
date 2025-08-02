@@ -5,6 +5,7 @@ import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
 import Toast from '@/app/Toast';
 import { useRouter } from 'next/navigation';
+import { analytics } from '@/lib/analytics';
 
 interface UserProfile {
   id: number;
@@ -56,6 +57,8 @@ export function SupabaseAuthProvider({ children }: { children: React.ReactNode }
         if (res.ok) {
           const userData = await res.json();
           setUser(userData);
+          // Set analytics user ID
+          analytics.setUserId(userData.id.toString());
         } else if (res.status === 404) {
           // User doesn't exist in backend, create them
           await createBackendUser(supabaseUser, session.access_token);
@@ -169,6 +172,8 @@ export function SupabaseAuthProvider({ children }: { children: React.ReactNode }
         return false;
       } else if (data.user) {
         console.log('Email sign-in successful');
+        // Track successful login
+        analytics.userLogin('email');
         // Immediately fetch user profile to update state
         await fetchUserProfile(data.user);
         setToastMessage('Successfully signed in! Redirecting to dashboard...');

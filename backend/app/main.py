@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 
 from .database import engine, Base
-from .routes import analysis, auth, users, history, stats, paddle, admin
+from .routes import analysis, auth, users, history, stats, paddle, admin, analytics
 
 load_dotenv("/app/.env")
 
@@ -34,6 +34,7 @@ app.include_router(history.router, prefix="/api/history", tags=["history"])
 app.include_router(stats.router, prefix="/api/stats", tags=["stats"])
 app.include_router(paddle.router, prefix="/api/paddle", tags=["paddle"])
 app.include_router(admin.router, prefix="/api/admin", tags=["admin"])
+app.include_router(analytics.router, prefix="/api/analytics", tags=["analytics"])
 
 @app.get("/")
 def read_root():

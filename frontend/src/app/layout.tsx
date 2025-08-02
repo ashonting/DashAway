@@ -4,6 +4,7 @@ import { SupabaseAuthProvider } from '@/contexts/SupabaseAuthContext';
 import Header from './Header';
 import Footer from './Footer';
 import { siteMetadata } from '@/lib/metadata';
+import { WebsiteStructuredData, OrganizationStructuredData } from '@/components/StructuredData';
 import './globals.css';
 
 export default function RootLayout({
@@ -48,30 +49,52 @@ export default function RootLayout({
         <meta name="keywords" content={siteMetadata.keywords.join(", ")} />
         <meta name="author" content={siteMetadata.author} />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="theme-color" content={siteMetadata.themeColor} />
+        
+        {/* Favicon and App Icons */}
+        <link rel="icon" href="/favicon.ico" />
+        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+        <link rel="manifest" href="/site.webmanifest" />
         
         {/* OpenGraph */}
         <meta property="og:title" content={siteMetadata.title} />
         <meta property="og:description" content={siteMetadata.description} />
         <meta property="og:url" content={siteMetadata.url} />
         <meta property="og:image" content={`${siteMetadata.url}${siteMetadata.ogImage}`} />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
         <meta property="og:type" content="website" />
+        <meta property="og:site_name" content={siteMetadata.siteName} />
+        <meta property="og:locale" content="en_US" />
         
         {/* Twitter */}
         <meta name="twitter:card" content={siteMetadata.twitterCard} />
         <meta name="twitter:title" content={siteMetadata.title} />
         <meta name="twitter:description" content={siteMetadata.description} />
         <meta name="twitter:image" content={`${siteMetadata.url}${siteMetadata.ogImage}`} />
+        <meta name="twitter:site" content="@dashaway" />
+        <meta name="twitter:creator" content="@dashaway" />
+        
+        {/* Additional SEO Meta Tags */}
+        <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+        <meta name="googlebot" content="index, follow" />
+        <meta name="language" content="English" />
+        <meta name="revisit-after" content="3 days" />
+        <meta name="distribution" content="global" />
+        <meta name="rating" content="general" />
         
         {/* Canonical */}
         <link rel="canonical" href={siteMetadata.url} />
         
-        {/* Cache control */}
-        <meta name="cache-control" content="no-cache, no-store, must-revalidate" />
-        <meta name="pragma" content="no-cache" />
-        <meta name="expires" content="0" />
-        <meta name="build-timestamp" content={Date.now().toString()} />
-        <meta name="version" content="v2.0.2" />
-        <meta name="cache-buster" content={process.env.CACHE_BUSTER || 'default'} />
+        {/* Preconnect for performance */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        
+        {/* Structured Data */}
+        <WebsiteStructuredData />
+        <OrganizationStructuredData />
       </head>
       <body>
         <SupabaseAuthProvider>
