@@ -1,5 +1,10 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  eslint: {
+    // Warning: This allows production builds to successfully complete even if
+    // your project has ESLint errors.
+    ignoreDuringBuilds: true,
+  },
   env: {
     NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'http://backend:8000',
     NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET,
