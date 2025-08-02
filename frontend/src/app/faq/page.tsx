@@ -49,7 +49,7 @@ const faqs: FAQItem[] = [
     id: 'document-history',
     category: 'features',
     question: 'How does document history work?',
-    answer: 'Pro and Basic users can access their document history through the Dashboard. We save:\n• Original text and cleaned versions\n• Processing date and time\n• Quick preview for easy identification\n• Full document details when clicked\n\nYou can view, download, or delete any saved document. Anonymous users don&apos;t get history saved.'
+    answer: 'Pro and Basic users can access their document history through the Dashboard. We save:\n• Original text and cleaned versions\n• Processing date and time\n• Quick preview for easy identification\n• Full document details when clicked\n\nYou can view, download, or delete any saved document. Anonymous users don\'t get history saved.',
   },
 
   // Pricing
