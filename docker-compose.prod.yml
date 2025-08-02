@@ -39,6 +39,7 @@ services:
       - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
       - NEXT_PUBLIC_SUPABASE_URL=${NEXT_PUBLIC_SUPABASE_URL}
       - NEXT_PUBLIC_SUPABASE_ANON_KEY=${NEXT_PUBLIC_SUPABASE_ANON_KEY}
+      - NEXT_PUBLIC_GLITCHTIP_DSN=${GLITCHTIP_DSN}
     env_file:
       - .env
     restart: unless-stopped
@@ -53,3 +54,63 @@ services:
       timeout: 10s
       retries: 3
       start_period: 60s
+
+  # GlitchTip Error Tracking Services
+  glitchtip-postgres:
+    container_name: glitchtip_postgres
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: glitchtip
+      POSTGRES_USER: glitchtip
+      POSTGRES_PASSWORD: ${GLITCHTIP_DB_PASSWORD}
+    volumes:
+      - glitchtip_postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    mem_limit: 128m
+    memswap_limit: 128m
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U glitchtip"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+
+  glitchtip-redis:
+    container_name: glitchtip_redis
+    image: redis:7-alpine
+    restart: unless-stopped
+    mem_limit: 64m
+    memswap_limit: 64m
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+
+  glitchtip:
+    container_name: glitchtip_web
+    image: glitchtip/glitchtip:latest
+    depends_on:
+      - glitchtip-postgres
+      - glitchtip-redis
+    ports:
+      - "127.0.0.1:8001:8000"
+    environment:
+      DATABASE_URL: postgres://glitchtip:${GLITCHTIP_DB_PASSWORD}@glitchtip-postgres:5432/glitchtip
+      SECRET_KEY: ${GLITCHTIP_SECRET_KEY}
+      REDIS_URL: redis://glitchtip-redis:6379
+      EMAIL_URL: ${GLITCHTIP_EMAIL_URL:-console://}
+      GLITCHTIP_DOMAIN: https://errors.dashaway.io
+      DEFAULT_FROM_EMAIL: errors@dashaway.io
+      CELERY_WORKER_AUTOSCALE: "1,2"
+      CELERY_WORKER_MAX_TASKS_PER_CHILD: 1000
+    restart: unless-stopped
+    mem_limit: 256m
+    memswap_limit: 256m
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/0/health/"]
+      interval: 60s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  glitchtip_postgres_data:

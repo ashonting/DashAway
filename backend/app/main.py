@@ -5,8 +5,12 @@ from dotenv import load_dotenv
 
 from .database import engine, Base
 from .routes import analysis, auth, users, history, stats, paddle, admin, analytics
+from .glitchtip import init_glitchtip
 
 load_dotenv("/app/.env")
+
+# Initialize GlitchTip error tracking
+init_glitchtip()
 
 Base.metadata.create_all(bind=engine)
 

@@ -5,6 +5,7 @@ import Header from './Header';
 import Footer from './Footer';
 import { siteMetadata } from '@/lib/metadata';
 import { WebsiteStructuredData, OrganizationStructuredData } from '@/components/StructuredData';
+import { initGlitchTip } from '@/lib/glitchtip';
 import './globals.css';
 
 export default function RootLayout({
@@ -15,6 +16,9 @@ export default function RootLayout({
   const [theme, setTheme] = useState('dark'); // Default to dark theme
 
   useEffect(() => {
+    // Initialize GlitchTip error tracking
+    initGlitchTip();
+    
     // On component mount, set the theme from localStorage or system preference
     const savedTheme = localStorage.getItem('theme');
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
