@@ -355,23 +355,13 @@ export default function AdminPage() {
 
         {/* Basic Stats Cards */}
         {stats && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-1 gap-6 mb-8">
             <div className="bg-card p-6 rounded-2xl border border-border/40">
               <div className="flex items-center">
                 <MessageSquare className="h-8 w-8 text-blue-500 mr-3" />
                 <div>
                   <p className="text-2xl font-bold text-foreground">{stats.total_feedback}</p>
                   <p className="text-sm text-foreground/60">Total Feedback</p>
-                </div>
-              </div>
-            </div>
-            
-            <div className="bg-card p-6 rounded-2xl border border-border/40">
-              <div className="flex items-center">
-                <Eye className="h-8 w-8 text-green-500 mr-3" />
-                <div>
-                  <p className="text-2xl font-bold text-foreground">{stats.total_faqs}</p>
-                  <p className="text-sm text-foreground/60">FAQ Items</p>
                 </div>
               </div>
             </div>
