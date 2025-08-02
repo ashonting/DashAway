@@ -15,6 +15,7 @@ class User(Base):
     paddle_customer_id = Column(String, nullable=True, index=True)  # Paddle customer ID
     subscription_tier = Column(String, default="free")  # free, pro, premium
     subscription_status = Column(String, default="inactive")  # active, cancelled, past_due, etc.
+    is_paying = Column(Boolean, default=True)  # False for manually granted Pro users (non-paying)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 

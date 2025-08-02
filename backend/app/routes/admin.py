@@ -127,13 +127,24 @@ def get_enhanced_analytics(password: str, db: Session = Depends(get_db)):
     total_users = db.query(User).count()
     active_users = db.query(User).filter(User.is_active == True).count()
     
-    # Pro user analytics
+    # Pro user analytics - distinguish paying vs non-paying
     active_subscriptions = db.query(Subscription).filter(
         Subscription.status == 'active'
     ).count()
     
-    # Revenue calculations (assuming $4/month per Pro user)
-    mrr = active_subscriptions * 4  # Monthly Recurring Revenue
+    # Count paying vs non-paying Pro users
+    paying_pro_users = db.query(User).filter(
+        User.subscription_tier == 'pro',
+        User.is_paying == True
+    ).count()
+    
+    non_paying_pro_users = db.query(User).filter(
+        User.subscription_tier == 'pro',
+        User.is_paying == False
+    ).count()
+    
+    # Revenue calculations (only from paying Pro users)
+    mrr = paying_pro_users * 4  # Monthly Recurring Revenue
     arr = mrr * 12  # Annual Recurring Revenue
     
     # Usage analytics
@@ -146,8 +157,8 @@ def get_enhanced_analytics(password: str, db: Session = Depends(get_db)):
         User.created_at >= thirty_days_ago
     ).count() if hasattr(User, 'created_at') else 0
     
-    # Conversion rate
-    conversion_rate = (active_subscriptions / total_users * 100) if total_users > 0 else 0
+    # Conversion rate (based on paying users only)
+    conversion_rate = (paying_pro_users / total_users * 100) if total_users > 0 else 0
     
     # Top usage stats
     top_users = db.query(User).order_by(desc(User.usage_count)).limit(5).all()
@@ -167,15 +178,17 @@ def get_enhanced_analytics(password: str, db: Session = Depends(get_db)):
         "users": {
             "total": total_users,
             "active": active_users,
-            "pro": active_subscriptions,
-            "free": total_users - active_subscriptions,
+            "pro": paying_pro_users + non_paying_pro_users,
+            "pro_paying": paying_pro_users,
+            "pro_non_paying": non_paying_pro_users,
+            "free": total_users - (paying_pro_users + non_paying_pro_users),
             "recent_signups": recent_signups
         },
         "revenue": {
             "mrr": mrr,
             "arr": arr,
-            "active_subscriptions": active_subscriptions,
-            "average_revenue_per_user": 4 if active_subscriptions > 0 else 0
+            "active_subscriptions": paying_pro_users,
+            "average_revenue_per_user": 4 if paying_pro_users > 0 else 0
         },
         "usage": {
             "total_cleanings": total_usage,
@@ -294,17 +307,28 @@ def make_user_pro(user_id: int, password: str, db: Session = Depends(get_db)):
     if existing_sub:
         return {"message": f"User {user.email} is already Pro"}
     
-    # Create Pro subscription
+    # Update user to Pro tier and mark as non-paying (admin granted)
+    user.subscription_tier = "pro"
+    user.subscription_status = "active"
+    user.is_paying = False  # Admin granted, not paying
+    
+    # Create Pro subscription record
     subscription = Subscription(
         user_id=user_id,
         paddle_subscription_id=f"admin_pro_{user_id}",
-        status="active"
+        paddle_customer_id=f"admin_customer_{user_id}",
+        paddle_product_id="admin_granted",
+        paddle_price_id="admin_granted",
+        status="active",
+        tier="pro",
+        billing_cycle="monthly",
+        unit_price=0.0  # No charge for admin granted
     )
     
     db.add(subscription)
     db.commit()
     
-    return {"message": f"Successfully made {user.email} a Pro member!"}
+    return {"message": f"Successfully made {user.email} a Pro member (non-paying)!"}
 
 @router.delete("/remove-pro/{user_id}")
 def remove_user_pro(user_id: int, password: str, db: Session = Depends(get_db)):
@@ -327,8 +351,14 @@ def remove_user_pro(user_id: int, password: str, db: Session = Depends(get_db)):
             detail="User is not Pro or subscription not found"
         )
     
+    # Reset user to free tier
+    user = db.query(User).filter(User.id == user_id).first()
+    if user:
+        user.subscription_tier = "free"
+        user.subscription_status = "inactive"
+        user.is_paying = True  # Reset to default for when they might subscribe later
+    
     db.delete(subscription)
     db.commit()
     
-    user = db.query(User).filter(User.id == user_id).first()
     return {"message": f"Successfully removed Pro status from {user.email if user else 'user'}"}
