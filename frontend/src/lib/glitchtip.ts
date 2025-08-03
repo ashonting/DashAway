@@ -88,13 +88,12 @@ export function addBreadcrumb(message: string, category: string = 'custom', data
   });
 }
 
-// Error boundary component
+// Error boundary component (simplified to avoid TypeScript issues)
 export function withErrorBoundary<T extends object>(
-  Component: React.ComponentType<T>,
-  fallback?: React.ComponentType<{ error: Error; resetError: () => void }>
+  Component: React.ComponentType<T>
 ) {
   return Sentry.withErrorBoundary(Component, {
-    fallback: fallback || (({ error, resetError }) => 
+    fallback: ({ error, resetError }) => 
       React.createElement('div', { 
         className: "min-h-screen flex items-center justify-center bg-gray-50" 
       },
@@ -110,8 +109,7 @@ export function withErrorBoundary<T extends object>(
             className: "px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
           }, "Try again")
         )
-      )
-    ),
+      ),
     beforeCapture: (scope, error) => {
       scope.setTag('errorBoundary', true);
     },
