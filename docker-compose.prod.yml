@@ -98,7 +98,6 @@ services:
       DATABASE_URL: postgres://glitchtip:${GLITCHTIP_DB_PASSWORD}@glitchtip-postgres:5432/glitchtip
       SECRET_KEY: ${GLITCHTIP_SECRET_KEY}
       REDIS_URL: redis://glitchtip-redis:6379
-      EMAIL_URL: ${GLITCHTIP_EMAIL_URL:-console://}
       GLITCHTIP_DOMAIN: https://errors.dashaway.io
       DEFAULT_FROM_EMAIL: errors@dashaway.io
       CELERY_WORKER_AUTOSCALE: "1,2"
