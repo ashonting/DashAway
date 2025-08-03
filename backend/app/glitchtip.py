@@ -26,7 +26,7 @@ def init_glitchtip():
         
         # Integrations
         integrations=[
-            FastApiIntegration(auto_enabling_integrations=False),
+            FastApiIntegration(),
             SqlalchemyIntegration(),
         ],
         
