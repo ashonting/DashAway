@@ -93,7 +93,7 @@ services:
       - glitchtip-postgres
       - glitchtip-redis
     ports:
-      - "127.0.0.1:8001:8000"
+      - "8001:8080"
     environment:
       DATABASE_URL: postgres://glitchtip:${GLITCHTIP_DB_PASSWORD}@glitchtip-postgres:5432/glitchtip
       SECRET_KEY: ${GLITCHTIP_SECRET_KEY}
@@ -102,6 +102,8 @@ services:
       DEFAULT_FROM_EMAIL: errors@dashaway.io
       CELERY_WORKER_AUTOSCALE: "1,2"
       CELERY_WORKER_MAX_TASKS_PER_CHILD: 1000
+      ENABLE_OPEN_USER_REGISTRATION: "True"
+      ENABLE_USER_REGISTRATION: "True"
     restart: unless-stopped
     mem_limit: 256m
     memswap_limit: 256m
