@@ -13,6 +13,7 @@ import UpgradeModal from './UpgradeModal';
 import WelcomeModal from './WelcomeModal';
 import SampleContent from './SampleContent';
 import ProductTour from './ProductTour';
+import SignupCTAModal from './SignupCTAModal';
 import PageHead from '@/components/PageHead';
 import useTextAnalysis from '@/hooks/useTextAnalysis'
 import { useSupabaseAuth } from '@/contexts/SupabaseAuthContext'
@@ -42,7 +43,7 @@ interface HistoryState {
 }
 
 export default function Home() {
-  const { text, setText, segments, setSegments, readabilityScore, loading, error, analyzeText, showUpgradeModal, setShowUpgradeModal } = useTextAnalysis();
+  const { text, setText, segments, setSegments, readabilityScore, loading, error, analyzeText, showUpgradeModal, setShowUpgradeModal, showSignupCTA, setShowSignupCTA } = useTextAnalysis();
   const { user } = useSupabaseAuth();
   const [activePopover, setActivePopover] = useState<number | null>(null)
   const [hiddenTypes, setHiddenTypes] = useState<Set<string>>(new Set());
@@ -61,6 +62,7 @@ export default function Home() {
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
   const [showSampleContent, setShowSampleContent] = useState(false);
   const [showProductTour, setShowProductTour] = useState(false);
+  // showSignupCTA now comes from useTextAnalysis hook
   
   const MAX_CHARS_FREE = 10000
   const MAX_CHARS_PRO = 500000 // 500K characters for Pro users
@@ -657,7 +659,9 @@ export default function Home() {
       </div>
       <Features />
       <Toast message="Copied to clipboard!" show={showToast} onClose={() => setShowToast(false)} />
-      {error && <Toast message={error} show={true} onClose={() => {}} />}
+      {error && !error.includes('You have used your 1 free try') && (
+        <Toast message={error} show={true} onClose={() => {}} />
+      )}
       
       <UpgradeModal 
         isOpen={showUpgradeModal}
@@ -681,6 +685,11 @@ export default function Home() {
       <ProductTour 
         isOpen={showProductTour}
         onClose={handleCloseTour}
+      />
+      
+      <SignupCTAModal 
+        isOpen={showSignupCTA}
+        onClose={() => setShowSignupCTA(false)}
       />
     </>
   )

@@ -15,6 +15,7 @@ export default function useTextAnalysis() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [showSignupCTA, setShowSignupCTA] = useState(false);
   const currentRequestRef = useRef<AbortController | null>(null);
 
   const analyzeText = async (textToAnalyze: string) => {
@@ -81,9 +82,11 @@ export default function useTextAnalysis() {
         // Check if this is a usage limit error
         if (response.status === 403 && errorData.detail) {
           if (errorData.detail.includes("1 free try")) {
-            setShowUpgradeModal(true);
+            // Show signup CTA for anonymous users
+            setShowSignupCTA(true);
             return; // Don't throw error, show modal instead
           } else if (errorData.detail.includes("2 monthly uses")) {
+            // Show upgrade modal for registered users
             setShowUpgradeModal(true);
             return; // Don't throw error, show modal instead
           }
@@ -115,5 +118,5 @@ export default function useTextAnalysis() {
     }
   };
 
-  return { text, setText, segments, setSegments, readabilityScore, loading, error, analyzeText, showUpgradeModal, setShowUpgradeModal };
+  return { text, setText, segments, setSegments, readabilityScore, loading, error, analyzeText, showUpgradeModal, setShowUpgradeModal, showSignupCTA, setShowSignupCTA };
 }

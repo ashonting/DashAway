@@ -13,10 +13,19 @@ if not DATABASE_URL:
 
 engine = create_engine(
     DATABASE_URL,
-    pool_size=20,
-    max_overflow=0,
-    pool_pre_ping=True,
-    pool_recycle=300
+    # Connection pool settings optimized for production
+    pool_size=2,            # Reduced for Supabase connection limits
+    max_overflow=3,         # Minimal overflow for Supabase (total max: 5)
+    pool_pre_ping=True,     # Verify connections before use
+    pool_recycle=3600,      # Recycle connections every hour
+    pool_timeout=30,        # Timeout when getting connection from pool
+    # Performance optimizations
+    echo=False,             # Disable SQL logging in production
+    future=True,            # Use SQLAlchemy 2.0 style
+    # Connection arguments for PostgreSQL optimization
+    connect_args={
+        "options": "-c default_transaction_isolation=read_committed"
+    }
 )
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 

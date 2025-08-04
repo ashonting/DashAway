@@ -56,6 +56,59 @@ class PaddleService:
     def is_available(self) -> bool:
         """Check if Paddle integration is available"""
         return self._paddle_available
+        
+    def _is_valid_price_id(self, price_id: str) -> bool:
+        """Validate price_id against configured products"""
+        for tier, cycles in self.pricing_config.items():
+            for cycle, config in cycles.items():
+                if config.get("price_id") == price_id:
+                    return True
+        return False
+        
+    def _get_or_create_customer(self, email: str, existing_customer_id: Optional[str] = None) -> str:
+        """Get existing customer or create new one"""
+        if existing_customer_id:
+            return existing_customer_id
+            
+        try:
+            # First try to find existing customer by email
+            search_response = requests.get(
+                f"{self.base_url}/customers",
+                headers=self.headers,
+                params={"email": email},
+                timeout=30
+            )
+            
+            if search_response.status_code == 200:
+                customers = search_response.json().get("data", [])
+                if customers:
+                    return customers[0]["id"]
+            
+            # Create new customer if not found
+            customer_data = {
+                "email": email,
+                "locale": "en"
+            }
+            
+            create_response = requests.post(
+                f"{self.base_url}/customers",
+                headers=self.headers,
+                json=customer_data,
+                timeout=30
+            )
+            
+            if create_response.status_code in [200, 201]:
+                return create_response.json()["data"]["id"]
+            else:
+                logger.error(f"Customer creation failed: {create_response.text}")
+                raise Exception(f"Customer creation failed: {create_response.text}")
+                
+        except requests.RequestException as e:
+            logger.error(f"Network error with customer operations: {str(e)}")
+            raise Exception("Network error during customer operations")
+        except Exception as e:
+            logger.error(f"Customer operation failed: {str(e)}")
+            raise
 
     def create_checkout_session(self, session_data: CheckoutSessionCreate) -> CheckoutSessionResponse:
         """Create a Paddle checkout session for subscription"""
@@ -63,48 +116,61 @@ class PaddleService:
             raise Exception("Paddle integration is not configured. Please set PADDLE_API_KEY environment variable.")
             
         try:
-            # Get or create customer
-            customer_id = session_data.customer_id
-            if not customer_id:
-                customer_response = requests.post(
-                    f"{self.base_url}/customers",
-                    headers=self.headers,
-                    json={"email": session_data.customer_email}
-                )
-                if customer_response.status_code == 200:
-                    customer_id = customer_response.json()["data"]["id"]
-                else:
-                    logger.error(f"Failed to create customer: {customer_response.text}")
-                    raise Exception("Customer creation failed")
-
-            # Create transaction for subscription
-            transaction_data = {
+            # Validate price_id against configured products
+            if not self._is_valid_price_id(session_data.price_id):
+                raise ValueError(f"Invalid price_id: {session_data.price_id}")
+            
+            # Get or create customer with better error handling
+            customer_id = self._get_or_create_customer(
+                session_data.customer_email, 
+                session_data.customer_id
+            )
+            
+            # Create subscription checkout session with proper configuration
+            checkout_data = {
                 "items": [{
                     "price_id": session_data.price_id,
                     "quantity": 1
                 }],
                 "customer_id": customer_id,
-                "checkout": {
-                    "url": session_data.success_url,
+                "return_url": session_data.success_url,
+                "cancel_url": session_data.success_url + "?cancelled=true",
+                "custom_data": {
+                    "user_email": session_data.customer_email,
+                    "checkout_type": "subscription"
                 }
             }
             
-            transaction_response = requests.post(
+            # Create the checkout transaction
+            checkout_response = requests.post(
                 f"{self.base_url}/transactions",
                 headers=self.headers,
-                json=transaction_data
+                json=checkout_data,
+                timeout=30
             )
             
-            if transaction_response.status_code == 200:
-                transaction = transaction_response.json()["data"]
+            if checkout_response.status_code in [200, 201]:
+                checkout = checkout_response.json()["data"]
+                # Extract checkout URL from response
+                checkout_url = checkout.get("checkout", {}).get("url")
+                if not checkout_url:
+                    # Fallback: construct checkout URL from transaction ID
+                    checkout_url = f"https://checkout.paddle.com/pay/{checkout['id']}"
+                    
                 return CheckoutSessionResponse(
-                    checkout_url=transaction["checkout"]["url"],
-                    checkout_id=transaction["id"]
+                    checkout_url=checkout_url,
+                    checkout_id=checkout["id"]
                 )
             else:
-                logger.error(f"Failed to create transaction: {transaction_response.text}")
-                raise Exception("Transaction creation failed")
+                logger.error(f"Failed to create checkout: {checkout_response.status_code} - {checkout_response.text}")
+                raise Exception(f"Checkout creation failed: HTTP {checkout_response.status_code}")
             
+        except requests.RequestException as e:
+            logger.error(f"Network error creating checkout: {str(e)}")
+            raise Exception("Network error during checkout creation")
+        except ValueError as e:
+            logger.error(f"Validation error: {str(e)}")
+            raise Exception(f"Invalid checkout data: {str(e)}")
         except Exception as e:
             logger.error(f"Failed to create Paddle checkout session: {str(e)}")
             raise Exception(f"Checkout creation failed: {str(e)}")

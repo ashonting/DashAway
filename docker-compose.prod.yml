@@ -8,20 +8,24 @@ services:
       - "127.0.0.1:8000:8000"
     environment:
       - NODE_ENV=production
+      - PYTHONUNBUFFERED=1
+      - PYTHONDONTWRITEBYTECODE=1
     env_file:
       - .env
     volumes:
       - ./backend/app:/app/app:ro
     restart: unless-stopped
-    # Resource limits for 1GB droplet
-    mem_limit: 256m
-    memswap_limit: 256m
+    # Optimized resource limits
+    mem_limit: 384m
+    memswap_limit: 384m
+    cpu_count: 1
+    cpus: '0.5'
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/docs"]
-      interval: 60s
-      timeout: 10s
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health', timeout=5)"]
+      interval: 45s
+      timeout: 8s
       retries: 3
-      start_period: 40s
+      start_period: 30s
 
   frontend:
     build: 
@@ -40,20 +44,24 @@ services:
       - NEXT_PUBLIC_SUPABASE_URL=${NEXT_PUBLIC_SUPABASE_URL}
       - NEXT_PUBLIC_SUPABASE_ANON_KEY=${NEXT_PUBLIC_SUPABASE_ANON_KEY}
       - NEXT_PUBLIC_GLITCHTIP_DSN=${GLITCHTIP_DSN}
+      - NODE_OPTIONS="--max-old-space-size=256"
     env_file:
       - .env
     restart: unless-stopped
     depends_on:
-      - backend
-    # Resource limits for 1GB droplet
-    mem_limit: 512m
-    memswap_limit: 512m
+      backend:
+        condition: service_healthy
+    # Optimized resource limits
+    mem_limit: 320m
+    memswap_limit: 320m
+    cpu_count: 1
+    cpus: '0.5'
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000"]
-      interval: 60s
-      timeout: 10s
+      test: ["CMD-SHELL", "node -e 'const http = require(\"http\"); const req = http.request({port:3000, path:\"/\", timeout:5000}, (res) => process.exit(res.statusCode === 200 ? 0 : 1)); req.on(\"error\", () => process.exit(1)); req.end();'"]
+      interval: 45s
+      timeout: 8s
       retries: 3
-      start_period: 60s
+      start_period: 45s
 
   # GlitchTip Error Tracking Services
   glitchtip-postgres:
@@ -63,37 +71,51 @@ services:
       POSTGRES_DB: glitchtip
       POSTGRES_USER: glitchtip
       POSTGRES_PASSWORD: ${GLITCHTIP_DB_PASSWORD}
+      POSTGRES_INITDB_ARGS: "--data-checksums"
+      POSTGRES_HOST_AUTH_METHOD: md5
     volumes:
       - glitchtip_postgres_data:/var/lib/postgresql/data
     restart: unless-stopped
-    mem_limit: 128m
-    memswap_limit: 128m
+    # Optimized resource limits
+    mem_limit: 160m
+    memswap_limit: 160m
+    cpu_count: 1
+    cpus: '0.3'
+    shm_size: 128mb
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U glitchtip"]
-      interval: 30s
-      timeout: 5s
+      test: ["CMD-SHELL", "pg_isready -U glitchtip -d glitchtip"]
+      interval: 20s
+      timeout: 3s
       retries: 5
+      start_period: 10s
 
   glitchtip-redis:
     container_name: glitchtip_redis
     image: redis:7-alpine
+    command: redis-server --maxmemory 48mb --maxmemory-policy allkeys-lru --save 900 1 --save 300 10
     restart: unless-stopped
-    mem_limit: 64m
-    memswap_limit: 64m
+    # Optimized resource limits
+    mem_limit: 80m
+    memswap_limit: 80m
+    cpu_count: 1
+    cpus: '0.2'
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 30s
-      timeout: 5s
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 20s
+      timeout: 3s
       retries: 5
+      start_period: 5s
 
   glitchtip:
     container_name: glitchtip_web
     image: glitchtip/glitchtip:latest
     depends_on:
-      - glitchtip-postgres
-      - glitchtip-redis
+      glitchtip-postgres:
+        condition: service_healthy
+      glitchtip-redis:
+        condition: service_healthy
     ports:
-      - "8001:8080"
+      - "8080:8080"
     environment:
       DATABASE_URL: postgres://glitchtip:${GLITCHTIP_DB_PASSWORD}@glitchtip-postgres:5432/glitchtip
       SECRET_KEY: ${GLITCHTIP_SECRET_KEY}
@@ -101,17 +123,22 @@ services:
       GLITCHTIP_DOMAIN: https://errors.dashaway.io
       DEFAULT_FROM_EMAIL: errors@dashaway.io
       CELERY_WORKER_AUTOSCALE: "1,2"
-      CELERY_WORKER_MAX_TASKS_PER_CHILD: 1000
+      CELERY_WORKER_MAX_TASKS_PER_CHILD: 500
       ENABLE_OPEN_USER_REGISTRATION: "True"
       ENABLE_USER_REGISTRATION: "True"
+      WEB_CONCURRENCY: 2
     restart: unless-stopped
-    mem_limit: 256m
-    memswap_limit: 256m
+    # Optimized resource limits
+    mem_limit: 192m
+    memswap_limit: 192m
+    cpu_count: 1
+    cpus: '0.4'
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/api/0/health/"]
-      interval: 60s
-      timeout: 10s
+      test: ["CMD-SHELL", "wget --quiet --tries=1 --timeout=5 --spider http://localhost:8080/ || exit 1"]
+      interval: 30s
+      timeout: 5s
       retries: 3
+      start_period: 45s
 
 volumes:
   glitchtip_postgres_data:

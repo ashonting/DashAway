@@ -1,11 +1,13 @@
 import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
 from dotenv import load_dotenv
 
 from .database import engine, Base
-from .routes import analysis, auth, users, history, stats, paddle, admin, analytics
+from .routes import analysis, auth, users, history, stats, paddle, admin
 from .glitchtip import init_glitchtip
+from .middleware.rate_limiter import api_rate_limit_middleware, analysis_rate_limit_middleware, auth_rate_limit_middleware
 
 load_dotenv("/app/.env")
 
@@ -23,6 +25,14 @@ app = FastAPI(
 # Get CORS origins from environment variable
 cors_origins = os.getenv("CORS_ORIGINS", "http://localhost:3000").split(",")
 
+# Add compression middleware (first - closest to response)
+app.add_middleware(GZipMiddleware, minimum_size=1000)
+
+# Add rate limiting middleware (order matters - add before CORS)
+app.middleware("http")(auth_rate_limit_middleware)
+app.middleware("http")(analysis_rate_limit_middleware)
+app.middleware("http")(api_rate_limit_middleware)
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=cors_origins,
@@ -38,7 +48,7 @@ app.include_router(history.router, prefix="/api/history", tags=["history"])
 app.include_router(stats.router, prefix="/api/stats", tags=["stats"])
 app.include_router(paddle.router, prefix="/api/paddle", tags=["paddle"])
 app.include_router(admin.router, prefix="/api/admin", tags=["admin"])
-app.include_router(analytics.router, prefix="/api/analytics", tags=["analytics"])
+# app.include_router(analytics.router, prefix="/api/analytics", tags=["analytics"])  # Analytics route not yet implemented
 
 @app.get("/")
 def read_root():
